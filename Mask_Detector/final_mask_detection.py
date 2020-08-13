@@ -119,6 +119,8 @@ def thread_for_detecting_humans():
 				if label == 15:
 					print("Human Detected")
 					humanPresent = True
+				else:
+					humanPresent = False
 		# print(humanPresent)
 		cv2.imshow("Human Detection", frame)
 		cv2.waitKey(1)
