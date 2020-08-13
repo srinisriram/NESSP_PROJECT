@@ -213,6 +213,8 @@ def thread_for_maskDetection():
 		cv2.waitKey(1)
 
 def thread_for_playing_sound():
+	global humanPresent
+	global noMask
 	while True:
 		if humanPresent:
 			if noMask:
