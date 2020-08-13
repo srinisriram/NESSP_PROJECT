@@ -206,8 +206,8 @@ if __name__ == "__main__":
 	vs = VideoStream(src=0).start()
 	#vs = VideoStream(usePiCamera=True).start()
 	time.sleep(2.0)
-	t1 = threading.Thread(thread_for_maskDetection)
-	t2 = threading.Thread(thread_for_detecting_humans)
+	t1 = threading.Thread(target=thread_for_maskDetection)
+	t2 = threading.Thread(target=thread_for_detecting_humans)
 	
 	t1.start()
 	t2.start()
