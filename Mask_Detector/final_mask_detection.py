@@ -68,6 +68,16 @@ embedder.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
 recognizer = pickle.loads(open(args["recognizer"], "rb").read())
 le = pickle.loads(open(args["le"], "rb").read())
 
+CLASSES = ["background", "aeroplane", "bicycle", "bird", "boat",
+                   "bottle", "bus", "car", "cat", "chair", "cow", "diningtable",
+                   "dog", "horse", "motorbike", "person", "pottedplant", "sheep",
+                   "sofa", "train", "tvmonitor"]
+
+COLORS = np.random.uniform(0, 255, size=(len(CLASSES), 3))
+
+net = cv2.dnn.readNetFromCaffe(prototxt="models/MobileNetSSD_deploy.prototxt.txt", caffeModel="models/MobileNetSSD_deploy.caffemodel")
+net.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
+
 # initialize the video stream, then allow the camera sensor to warm up
 print("[INFO] starting video stream...")
 vs = VideoStream(src=0).start()
@@ -83,10 +93,37 @@ fail_safe = []
 # start the FPS throughput estimator
 fps = FPS().start()
 
+def thread_for_detecting_humans():
+	global CLASSES
+	global COLORS
+	global net
+	global vs
+	while True:
+		frame = vs.read()
+
+		(h, w) = frame.shape[:2]
+		blob = cv2.dnn.blobFromImage(cv2.resize(frame, (300, 300)), 0.007843, (300, 300), 127.5)
+
+		net.setInput(blob)
+		detections = net.forward()
+
+		for i in np.arange(0, detections.shape[2]):
+			confidence = detections[0, 0, i, 2]
+
+			if confidence > 0.5:
+				idx = int(detections[0, 0, i, 1])
+				label = round(idx)
+
+				if label == 15:
+					#print("Human Detected")
+					thread_for_maskDetection(frame)
+		cv2.imshow("Frame", frame)
+		cv2.waitKey(1)
+
 # loop over frames from the video file stream
-while True:
+def thread_for_maskDetection(frame):
 	# grab the frame from the threaded video stream
-	frame = vs.read()
+	# frame = vs.read()
 	frame = gamma(frame, gamma=1)
 
 	# resize the frame to have a width of 600 pixels (while
@@ -169,19 +206,5 @@ while True:
 	# update the FPS counter
 	fps.update()
 
-	# show the output frame
-	cv2.imshow("Frame", frame)
-	key = cv2.waitKey(1) & 0xFF
-
-	# if the `q` key was pressed, break from the loop
-	if key == ord("q"):
-		break
-
-# stop the timer and display FPS information
-fps.stop()
-print("[INFO] elasped time: {:.2f}".format(fps.elapsed()))
-print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
-
-# do a bit of cleanup
-cv2.destroyAllWindows()
-vs.stop()
+if __name__ == "__main__":
+	thread_for_detecting_humans()

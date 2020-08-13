@@ -173,11 +173,6 @@ def thread_for_maskDetection():
 	cv2.imshow("Frame", frame)
 	cv2.waitKey(1)
 
-# stop the timer and display FPS information
-fps.stop()
-print("[INFO] elasped time: {:.2f}".format(fps.elapsed()))
-print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
-
-# do a bit of cleanup
-cv2.destroyAllWindows()
-vs.stop()
+if __name__ == "__main__":
+	while True:
+		thread_for_maskDetection()
