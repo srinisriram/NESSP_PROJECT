@@ -86,8 +86,8 @@ filename = 'look.wav'
 wave_obj1 = sa.WaveObject.from_wave_file(filename)
 arr = []
 
-noMask = ''
-humanPresent = ''
+noMask = False
+humanPresent = False
 
 fail_safe = []
 
@@ -120,7 +120,7 @@ def thread_for_detecting_humans():
 					print("Human Detected")
 					humanPresent = True
 				else:
-					humanPresent = ''
+					humanPresent = False
 		print(humanPresent)
 		cv2.imshow("Human Detection", frame)
 		cv2.waitKey(1)
