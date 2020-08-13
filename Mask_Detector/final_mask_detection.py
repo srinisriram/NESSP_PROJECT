@@ -82,8 +82,8 @@ net.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
 filename = 'mask.wav'
 wave_obj = sa.WaveObject.from_wave_file(filename)
 
-filename = 'look.wav'
-wave_obj1 = sa.WaveObject.from_wave_file(filename)
+filename1 = 'look.wav'
+wave_obj1 = sa.WaveObject.from_wave_file(filename1)
 arr = []
 
 noMask = False
@@ -119,8 +119,6 @@ def thread_for_detecting_humans():
 				if label == 15:
 					print("Human Detected")
 					humanPresent = True
-				else:
-					humanPresent = False
 		# print(humanPresent)
 		cv2.imshow("Human Detection", frame)
 		cv2.waitKey(1)
