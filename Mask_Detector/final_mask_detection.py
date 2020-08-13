@@ -199,6 +199,8 @@ def thread_for_maskDetection():
 
 	# update the FPS counter
 	fps.update()
+	cv2.imshow("Frame 2", frame)
+	cv2.waitKey(1)
 
 if __name__ == "__main__":
 	# initialize the video stream, then allow the camera sensor to warm up
