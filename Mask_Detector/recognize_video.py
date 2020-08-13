@@ -16,16 +16,25 @@ import cv2
 import os
 import simpleaudio as sa
 
-def most_frequent(List): 
-	counter = 0
-	num = List[0] 
-	for i in List: 
-		curr_frequency = List.count(i) 
-		if (curr_frequency > counter): 
-			counter = curr_frequency 
-			num = i 
-  
-	return num 
+def most_frequent(List):
+		counter = 0
+		num = List[0]
+		for i in List:
+				curr_frequency = List.count(i)
+				if (curr_frequency > counter):
+						counter = curr_frequency
+						num = i
+		return num
+
+
+def gamma(image, gamma=1.0):
+		# build a lookup table mapping the pixel values [0, 255] to
+		# their adjusted gamma values
+		invGamma = 1.0 / gamma
+		table = np.array([((i / 255.0) ** invGamma) * 255
+				for i in np.arange(0, 256)]).astype("uint8")
+		# apply gamma correction using the lookup table
+		return cv2.LUT(image, table)
 
 # construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
@@ -37,7 +46,7 @@ ap.add_argument("-r", "--recognizer", required=True,
 	help="path to model trained to recognize faces")
 ap.add_argument("-l", "--le", required=True,
 	help="path to label encoder")
-ap.add_argument("-c", "--confidence", type=float, default=0.5,
+ap.add_argument("-c", "--confidence", type=float, default=0.6,
 	help="minimum probability to filter weak detections")
 args = vars(ap.parse_args())
 
@@ -47,13 +56,13 @@ protoPath = os.path.sep.join([args["detector"], "deploy.prototxt"])
 modelPath = os.path.sep.join([args["detector"],
 	"res10_300x300_ssd_iter_140000.caffemodel"])
 detector = cv2.dnn.readNetFromCaffe(protoPath, modelPath)
-detector.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
+#detector.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
 
 # load our serialized face embedding model from disk and set the
 # preferable target to MYRIAD
 print("[INFO] loading face recognizer...")
 embedder = cv2.dnn.readNetFromTorch(args["embedding_model"])
-embedder.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
+#embedder.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
 
 # load the actual face recognition model along with the label encoder
 recognizer = pickle.loads(open(args["recognizer"], "rb").read())
@@ -61,13 +70,9 @@ le = pickle.loads(open(args["le"], "rb").read())
 
 # initialize the video stream, then allow the camera sensor to warm up
 print("[INFO] starting video stream...")
-vs = VideoStream(src=1).start()
+vs = VideoStream(src=0).start()
 #vs = VideoStream(usePiCamera=True).start()
 time.sleep(2.0)
-
-# start the FPS throughput estimator
-fps = FPS().start()
-
 
 filename = 'mask.wav'
 wave_obj = sa.WaveObject.from_wave_file(filename)
@@ -75,10 +80,14 @@ arr = []
 
 fail_safe = []
 
+# start the FPS throughput estimator
+fps = FPS().start()
+
 # loop over frames from the video file stream
 while True:
 	# grab the frame from the threaded video stream
 	frame = vs.read()
+	frame = gamma(frame, gamma=1)
 
 	# resize the frame to have a width of 600 pixels (while
 	# maintaining the aspect ratio), and then grab the image
@@ -136,13 +145,13 @@ while True:
 			if len(fail_safe) == 5:
 				most_freq = most_frequent(fail_safe)
 				if most_freq == "with_mask":
-					print("Your good to go!")
-					fail_safe.clear()
+						print("Your good to go!")
+						fail_safe.clear()
 				elif most_freq == "without_mask":
-					print("Please wear a mask to enter")
-					play_obj = wave_obj.play()
-					play_obj.wait_done()
-					fail_safe.clear()
+						print("Please wear a mask to enter")
+						play_obj = wave_obj.play()
+						play_obj.wait_done()
+						fail_safe.clear()
 
 			COLORS = [(0, 0, 255), (0, 255, 0)]
 			# draw the bounding box of the face along with the
@@ -151,11 +160,11 @@ while True:
 			y = startY - 10 if startY - 10 > 10 else startY + 10
 			n = 0
 			if name == "with_mask":
-				n = 1
+					n = 1
 			cv2.rectangle(frame, (startX, startY), (endX, endY),
-				COLORS[n], 2)
+								COLORS[n], 2)
 			cv2.putText(frame, text, (startX, y),
-				cv2.FONT_HERSHEY_SIMPLEX, 0.45, COLORS[n], 2)
+					cv2.FONT_HERSHEY_SIMPLEX, 0.45, COLORS[n], 2)
 
 	# update the FPS counter
 	fps.update()
