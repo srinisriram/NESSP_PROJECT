@@ -227,8 +227,7 @@ def thread_for_playing_sound():
 			else:
 				play_obj1 = wave_obj1.play()
 				play_obj1.wait_done()
-			play_obj1 = wave_obj1.play()
-			play_obj1.wait_done()
+	print("[INFO]: Exiting While Loop")
 		
 		
 if __name__ == "__main__":
