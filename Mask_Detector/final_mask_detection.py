@@ -121,6 +121,7 @@ def thread_for_detecting_humans():
 					humanPresent = True
 				else:
 					humanPresent = ''
+		print(humanPresent)
 		cv2.imshow("Human Detection", frame)
 		cv2.waitKey(1)
 
@@ -219,8 +220,8 @@ def thread_for_playing_sound():
 	global humanPresent
 	global noMask
 	while True:
-		print(humanPresent)
-		print(noMask)
+		#print(humanPresent)
+		#print(noMask)
 		if humanPresent:
 			if noMask:
 				play_obj = wave_obj.play()
