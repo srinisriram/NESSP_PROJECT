@@ -14,6 +14,7 @@ import pickle
 import time
 import cv2
 import os
+import threading
 import simpleaudio as sa
 
 def most_frequent(List):
@@ -78,12 +79,6 @@ COLORS = np.random.uniform(0, 255, size=(len(CLASSES), 3))
 net = cv2.dnn.readNetFromCaffe(prototxt="models/MobileNetSSD_deploy.prototxt.txt", caffeModel="models/MobileNetSSD_deploy.caffemodel")
 net.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
 
-# initialize the video stream, then allow the camera sensor to warm up
-print("[INFO] starting video stream...")
-vs = VideoStream(src=0).start()
-#vs = VideoStream(usePiCamera=True).start()
-time.sleep(2.0)
-
 filename = 'mask.wav'
 wave_obj = sa.WaveObject.from_wave_file(filename)
 arr = []
@@ -115,15 +110,14 @@ def thread_for_detecting_humans():
 				label = round(idx)
 
 				if label == 15:
-					#print("Human Detected")
-					thread_for_maskDetection(frame)
+					print("Human Detected")
 		cv2.imshow("Frame", frame)
 		cv2.waitKey(1)
 
 # loop over frames from the video file stream
 def thread_for_maskDetection(frame):
 	# grab the frame from the threaded video stream
-	# frame = vs.read()
+	frame = vs.read()
 	frame = gamma(frame, gamma=1)
 
 	# resize the frame to have a width of 600 pixels (while
@@ -207,4 +201,13 @@ def thread_for_maskDetection(frame):
 	fps.update()
 
 if __name__ == "__main__":
-	thread_for_detecting_humans()
+	# initialize the video stream, then allow the camera sensor to warm up
+	print("[INFO] starting video stream...")
+	vs = VideoStream(src=0).start()
+	#vs = VideoStream(usePiCamera=True).start()
+	time.sleep(2.0)
+	t1 = threading.Thread(thread_for_maskDetection)
+	t2 = threading.Thread(thread_for_detecting_humans)
+	
+	t1.start()
+	t2.start()
