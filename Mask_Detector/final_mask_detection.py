@@ -220,8 +220,8 @@ def thread_for_playing_sound():
 	global humanPresent
 	global noMask
 	while True:
-		print(humanPresent)
-		print(noMask)
+		print("HUMAN PRESENT: ", humanPresent)
+		print("NO MASK: ", noMask)
 		if humanPresent:
 			if noMask:
 				play_obj = wave_obj.play()
