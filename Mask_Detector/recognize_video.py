@@ -14,7 +14,7 @@ import pickle
 import time
 import cv2
 import os
-import simpleaudio as sa
+#import simpleaudio as sa
 
 def most_frequent(List):
 		counter = 0
@@ -75,7 +75,7 @@ vs = VideoStream(src=0).start()
 time.sleep(2.0)
 
 filename = 'mask.wav'
-wave_obj = sa.WaveObject.from_wave_file(filename)
+#wave_obj = sa.WaveObject.from_wave_file(filename)
 arr = []
 
 fail_safe = []
@@ -84,7 +84,7 @@ fail_safe = []
 fps = FPS().start()
 
 # loop over frames from the video file stream
-while True:
+def thread_for_maskDetection():
 	# grab the frame from the threaded video stream
 	frame = vs.read()
 	frame = gamma(frame, gamma=1)
@@ -149,8 +149,8 @@ while True:
 						fail_safe.clear()
 				elif most_freq == "without_mask":
 						print("Please wear a mask to enter")
-						play_obj = wave_obj.play()
-						play_obj.wait_done()
+						#play_obj = wave_obj.play()
+						#play_obj.wait_done()
 						fail_safe.clear()
 
 			COLORS = [(0, 0, 255), (0, 255, 0)]
@@ -171,11 +171,7 @@ while True:
 
 	# show the output frame
 	cv2.imshow("Frame", frame)
-	key = cv2.waitKey(1) & 0xFF
-
-	# if the `q` key was pressed, break from the loop
-	if key == ord("q"):
-		break
+	cv2.waitKey(1)
 
 # stop the timer and display FPS information
 fps.stop()
