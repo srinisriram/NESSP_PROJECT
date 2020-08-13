@@ -213,17 +213,16 @@ def thread_for_maskDetection():
 		cv2.waitKey(1)
 
 def thread_for_playing_sound():
-	if humanPresent:
-		if noMask:
-			play_obj = wave_obj.play()
-			play_obj.wait_done()
-			continue
-		else:
+	while True:
+		if humanPresent:
+			if noMask:
+				play_obj = wave_obj.play()
+				play_obj.wait_done()
+			else:
+				play_obj = wave_obj1.play()
+				play_obj.wait_done()
 			play_obj = wave_obj1.play()
 			play_obj.wait_done()
-			continue
-		play_obj = wave_obj1.play()
-		play_obj.wait_done()
 		
 		
 if __name__ == "__main__":
