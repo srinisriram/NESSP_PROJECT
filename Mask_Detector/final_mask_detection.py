@@ -66,7 +66,7 @@ embedder = cv2.dnn.readNetFromTorch(args["embedding_model"])
 embedder.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
 
 # load the actual face recognition model along with the label encoder
-recognizer = pickle.loads(open(args["recognizer"], "rb").read())
+recognizer = pickle.loads(open(args["recognizer"], "rb").read())  
 le = pickle.loads(open(args["le"], "rb").read())
 
 CLASSES = ["background", "aeroplane", "bicycle", "bird", "boat",
@@ -81,7 +81,13 @@ net.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
 
 filename = 'mask.wav'
 wave_obj = sa.WaveObject.from_wave_file(filename)
+
+filename = 'look.wav'
+wave_obj1 = sa.WaveObject.from_wave_file(filename)
 arr = []
+
+noMask = ''
+humanPresent = ''
 
 fail_safe = []
 
@@ -111,7 +117,10 @@ def thread_for_detecting_humans():
 
 				if label == 15:
 					print("Human Detected")
-		cv2.imshow("Frame", frame)
+					humanPresent = True
+				else:
+					humanPresent = ''
+		cv2.imshow("Human Detection", frame)
 		cv2.waitKey(1)
 
 # loop over frames from the video file stream
@@ -178,11 +187,11 @@ def thread_for_maskDetection():
 					most_freq = most_frequent(fail_safe)
 					if most_freq == "with_mask":
 							print("Your good to go!")
+							noMask = False
 							fail_safe.clear()
 					elif most_freq == "without_mask":
 							print("Please wear a mask to enter")
-							play_obj = wave_obj.play()
-							play_obj.wait_done()
+							noMask = True
 							fail_safe.clear()
 
 				COLORS = [(0, 0, 255), (0, 255, 0)]
@@ -200,17 +209,34 @@ def thread_for_maskDetection():
 
 		# update the FPS counter
 		fps.update()
-		cv2.imshow("Frame 2", frame)
+		cv2.imshow("Mask Detection", frame)
 		cv2.waitKey(1)
 
+def thread_for_playing_sound():
+	if humanPresent:
+		if noMask:
+			play_obj = wave_obj.play()
+			play_obj.wait_done()
+			continue
+		else:
+			play_obj = wave_obj1.play()
+			play_obj.wait_done()
+			continue
+		play_obj = wave_obj1.play()
+		play_obj.wait_done()
+		
+		
 if __name__ == "__main__":
 	# initialize the video stream, then allow the camera sensor to warm up
 	print("[INFO] starting video stream...")
 	vs = VideoStream(src=0).start()
-	#vs = VideoStream(usePiCamera=True).start()
+	# vs = VideoStream(usePiCamera=True).start()
 	time.sleep(2.0)
+	
 	t1 = threading.Thread(target=thread_for_maskDetection)
 	t2 = threading.Thread(target=thread_for_detecting_humans)
+	t3 = threading.Thread(target=thread_for_playing_sound)
 	
 	t1.start()
 	t2.start()
+	t3.start()
