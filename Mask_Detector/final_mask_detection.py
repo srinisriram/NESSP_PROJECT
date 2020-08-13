@@ -115,7 +115,7 @@ def thread_for_detecting_humans():
 		cv2.waitKey(1)
 
 # loop over frames from the video file stream
-def thread_for_maskDetection(frame):
+def thread_for_maskDetection():
 	# grab the frame from the threaded video stream
 	frame = vs.read()
 	frame = gamma(frame, gamma=1)
