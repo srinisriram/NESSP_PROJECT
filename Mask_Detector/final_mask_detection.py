@@ -229,8 +229,6 @@ def thread_for_playing_sound():
 				play_obj.wait_done()
 				time.sleep(1)
 				print("[DONE]")
-			elif not(noMask):
-				pass
 			else:
 				print("[PLAYING SOUND]")
 				play_obj1 = wave_obj1.play()
