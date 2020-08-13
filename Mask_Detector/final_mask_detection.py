@@ -99,6 +99,7 @@ def thread_for_detecting_humans():
 	global COLORS
 	global net
 	global vs
+	global humanPresent
 	while True:
 		frame = vs.read()
 
@@ -125,6 +126,7 @@ def thread_for_detecting_humans():
 
 # loop over frames from the video file stream
 def thread_for_maskDetection():
+	global noMask
 	while True:
 		# grab the frame from the threaded video stream
 		frame = vs.read()
