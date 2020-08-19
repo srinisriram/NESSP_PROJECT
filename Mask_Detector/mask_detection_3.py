@@ -175,7 +175,7 @@ def thread_for_maskDetection():
 			# extract the confidence (i.e., probability) associated with
 			# the prediction
 			confidence = detections[0, 0, i, 2]
-
+			#print(confidence)
 			# filter out weak detections
 			if confidence > args["confidence"]:
 				# compute the (x, y)-coordinates of the bounding box for
@@ -212,26 +212,16 @@ def thread_for_maskDetection():
 					play_obj.wait_done()
 					i = 1
 				'''
-				if totalFrames % 100 == 0:
-					i = 0
-
-				if len(fail_safe) == 1:
+				if len(fail_safe) == 3:
 					most_freq = most_frequent(fail_safe)
-					if human_detected and (i != 1) and (most_freq == "without_mask"):
-						play_obj = wave_obj.play()
-						play_obj.wait_done()
-						i = 1
-
 					if most_freq == "with_mask":
 							print("Your good to go!")
-							sa.stop_all()
 							#play_obj2 = wave_obj2.play()
 							#play_obj2.wait_done()
 							face_detected = True
 							fail_safe.clear()
 					elif most_freq == "without_mask":
 							print("Please wear a mask to enter")
-							sa.stop_all()
 							play_obj1 = wave_obj1.play()
 							play_obj1.wait_done()
 							face_detected = True
@@ -255,11 +245,11 @@ def thread_for_maskDetection():
 
 if __name__ == "__main__":
 	#thread_for_detecting_humans()
-	t1 = threading.Thread(target=thread_for_detecting_humans)
+	#t1 = threading.Thread(target=thread_for_detecting_humans)
 	t2 = threading.Thread(target=thread_for_maskDetection)
 
-	t1.start()
+	#t1.start()
 	t2.start()
 
-	t1.join()
+	#t1.join()
 	t2.join()
