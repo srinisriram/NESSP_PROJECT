@@ -143,6 +143,7 @@ def thread_for_maskDetection():
     global mask_play
     global totalFrames
     global i
+    global playSound
     while True:
         # grab the frame from the threaded video stream
         frame = vs.read()
@@ -209,7 +210,7 @@ def thread_for_maskDetection():
                     play_obj.wait_done()
                     i = 1
                 '''
-                if len(fail_safe) == 3:
+                if len(fail_safe) == 1:
                     most_freq = most_frequent(fail_safe)
                     if most_freq == "with_mask":
                         print("Your good to go!")
@@ -257,6 +258,8 @@ if __name__ == "__main__":
 
     # t1.start()
     t2.start()
+    t3.start()
 
     # t1.join()
     t2.join()
+    t3.start()
