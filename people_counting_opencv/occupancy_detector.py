@@ -4,6 +4,8 @@ from constants import SERVER_PORT
 from face_tracker import FaceTracker
 from send_receive_messages import SendReceiveMessages
 import time
+import logging
+from logger import Logger
 
 
 class OccupancyDetector:
@@ -18,17 +20,20 @@ class OccupancyDetector:
         :param peer_port: int (peer Port)
         :return:
         """
-        FaceTracker.perform_job()
-        SendReceiveMessages.perform_job(peer_ip_address, peer_port)
+        Logger.logger().debug("Invoking OccupancyDetector:perform_job")
+        send_receive_message_instance = SendReceiveMessages()
+        send_receive_message_instance.perform_job(peer_ip_address, peer_port)
+        FaceTracker.perform_job(send_receive_message_instance)
+
         try:
             while True:
                 time.sleep(1)
         except Exception as e:
             FaceTracker.run_program = False
             SendReceiveMessages.run_program = False
-            print(type(e).__name__ + ': ' + str(e))
+            Logger.logger().info(type(e).__name__ + ': ' + str(e))
         finally:
-            print("Exiting....")
+            Logger.logger().info("Exiting....")
 
 
 if __name__ == "__main__":
@@ -37,8 +42,11 @@ if __name__ == "__main__":
     parser.add_argument("-i", "--peer_ip_address", type=str, help="Provide the IP address of the remote raspberry PI.")
     parser.add_argument("-p", "--peer_port", type=int, help="Provide the server port of the remote raspberry PI.",
                         default=SERVER_PORT)
+    parser.add_argument('-d', '--debug', type=bool, help='Enable debug logging.', default=False)
     args = parser.parse_args()
+    if args.debug:
+        Logger.set_log_level(logging.DEBUG)
     OccupancyDetector.perform_job(args.peer_ip_address, args.peer_port)
 
     # all threads completely executed
-    print("Done!")
+    Logger.logger().info("Done!")

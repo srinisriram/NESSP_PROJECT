@@ -8,8 +8,12 @@ import pandas as pd
 from datetime import datetime
 import pytz
 import threading
-from constants import prototxt, model, CLASSES
+from constants import prototxt, model, CLASSES, MAX_TRACKER_LIST_SIZE
 import time
+from collections import defaultdict
+import os
+from logger import Logger
+
 from send_receive_messages import SendReceiveMessages
 
 
@@ -19,11 +23,11 @@ class FaceTracker:
     """
     run_program = True
 
+    send_receive_message_instance = None
     net = None
     vs = None
     ct = None
     trackers = []
-    trackable_objects = {}
     ret = None
     frame = None
     rgb = None
@@ -47,28 +51,54 @@ class FaceTracker:
     exit_dict = {"Date": [], "Time": []}
 
     @classmethod
-    def perform_job(cls):
+    def perform_job(cls, send_receive_message_instance):
+        """
+        This method performs the job expected out from this class.
+        :param send_receive_message_instance:
+        :return:
+        """
+        cls.send_receive_message_instance = send_receive_message_instance
         t1 = threading.Thread(target=cls.thread_for_capturing_face)
         # starting thread 1
         t1.start()
 
     @classmethod
     def __load_model(cls):
-        cls.net = cv2.dnn.readNetFromCaffe(prototxt, model)
-        cls.net.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
+        """
+        This method loads the model and prototext and sets the target as Movidius NCS stick
+        connected to Raspberry PI for the inference engine.
+        :return:
+        """
+        prototxt_path = os.path.join(os.path.dirname(__file__), prototxt)
+        model_path = os.path.join(os.path.dirname(__file__), model)
+        cls.net = cv2.dnn.readNetFromCaffe(prototxt_path, model_path)
+        # cls.net.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
 
     @classmethod
     def __start_video_capture(cls):
-        print("[INFO] starting video stream...")
+        """
+        This method starts the video capture on video0.
+        :return:
+        """
+        Logger.logger().info("starting video stream...")
         cls.vs = cv2.VideoCapture(0)
         time.sleep(2.0)
 
     @classmethod
     def __load_centroid_tracker(cls):
+        """
+        This method instantiates centroid tracker class.
+        :return:
+        """
         cls.ct = CentroidTracker(maxDisappeared=40, maxDistance=50)
 
     @classmethod
     def __populate_a_frame_and_blob(cls):
+        """
+        This method reads a video frame and populates a blob from the frame.
+        It also populates the other frame parameters used later in other methods.
+        :return:
+        """
         cls.ret, cls.frame = cls.vs.read()
         cls.frame = cv2.resize(cls.frame, (240, 240), interpolation=cv2.INTER_AREA)
         cls.rgb = cv2.cvtColor(cls.frame, cv2.COLOR_BGR2RGB)
@@ -77,17 +107,35 @@ class FaceTracker:
 
     @classmethod
     def __draw_a_line_to_differentiate_if_the_person_is_entering_or_exiting(cls):
+        """
+        This method draws a line on the frame to differentiate if a person is entering or exiting the door.
+        :return:
+        """
         cv2.line(cls.frame, (0, cls.H // 2), (cls.W, cls.H // 2), (0, 255, 255), 2)
-        cv2.imshow("Frame", cls.frame)
         cv2.waitKey(1)
 
     @classmethod
     def __load_the_blob_into_caffe_model(cls):
+        """
+        This method loads the video frame blob into the caffe model and sets the detections to forward.
+        :return:
+        """
         cls.net.setInput(cls.blob)
         cls.detections = cls.net.forward()
 
     @classmethod
     def __populate_a_tracker_object_and_add_it_to_trackers_list(cls, current_index):
+        """
+        This method does the following:
+        1. It uses the current index to fetch the box from the detections/
+        2. It draws a rectangular frame from the box.
+        3. It instantiates a correlation tracker instance.
+        4. It uses the correlation tracker instance to start tracking.
+        5. It updates tracker with the rgb values.
+        6. It appends the tracker to a tracker list.
+        :param current_index:
+        :return:
+        """
         box = cls.detections[0, 0, current_index, 3:7] * np.array([cls.W, cls.H, cls.W, cls.H])
         (startX, startY, endX, endY) = box.astype("int")
         cv2.rectangle(cls.frame, (startX, startY), (endX, endY), (0, 255, 0), 2)
@@ -98,19 +146,21 @@ class FaceTracker:
         cls.trackers.append(tracker)
 
     @classmethod
-    def __detect_a_human(cls):
-        cls.status = "Detecting"
-        for current_index in np.arange(0, cls.detections.shape[2]):
-            confidence = cls.detections[0, 0, current_index, 2]
-            if confidence > 0.5:
-                idx = int(cls.detections[0, 0, current_index, 1])
-                if CLASSES[idx] != "person":
-                    continue
-                cls.__populate_a_tracker_object_and_add_it_to_trackers_list(current_index)
+    def __is_person(cls, current_index):
+        is_person = False
+        confidence = cls.detections[0, 0, current_index, 2]
+        if confidence > 0.5:
+            idx = int(cls.detections[0, 0, current_index, 1])
+            if CLASSES[idx] != "person":
+                is_person = True
+        return is_person
 
     @classmethod
-    def __perform_tracking(cls):
-        cls.status = "Tracking"
+    def __populate_tracker_position_tuple_into_rects_list(cls):
+        """
+        This method populates tracker position into rects list.
+        :return:
+        """
         cls.rects = []
         # loop over the trackers
         for tracker in cls.trackers:
@@ -123,6 +173,11 @@ class FaceTracker:
 
     @classmethod
     def __update_time(cls, enter_exit_dict):
+        """
+        This method updats time and date into the passed in dictionary.
+        :param enter_exit_dict: dict
+        :return:
+        """
         tz_ny = pytz.timezone('America/New_York')
         datetime_ny = datetime.now(tz_ny)
         curr_time = datetime_ny.strftime("%H:%M %p")
@@ -131,44 +186,56 @@ class FaceTracker:
         enter_exit_dict["Date"].append(date)
 
     @classmethod
-    def __perform_centroid_tracking(cls):
-        # Pass in the list of 10 items of the 4 tuple values to the centroid tracker.
-        objects = cls.ct.update(cls.rects)
-        move_dict = {}
+    def __populate_move_dict(cls, objects):
+        """
+        This method populates move_dict with objectId as the key and the list of centroids as the values.
+        :param objects: dict
+        :return: dict
+        """
+        move_dict = defaultdict(list)
         for (objectID, centroid) in objects.items():
-            if objectID in move_dict:
-                move_dict[objectID].append(centroid[1])
-            else:
-                move_dict[objectID] = [centroid[1]]
-            # print("[MOVE DICTIONARY]: ", move_dict)
-            to = cls.trackable_objects.get(objectID, None)
-            if to is None:
-                to = TrackableObject(objectID, centroid)
-            else:
-                to.centroids.append(centroid)
-                if not to.counted:
-                    for keyName in move_dict:
-                        keyVals = move_dict[keyName]
-                        if "Counted" in keyVals:
-                            pass
-                        elif (keyVals[0] < cls.W // 2) and (keyVals[-1] > cls.W // 2):
-                            cls.totalUp += 1
-                            cls.totalPeople += 1
-                            SendReceiveMessages.decrement_face_detected_locally()
-                            cls.__update_time(cls.enter_dict)
-                        elif (keyVals[0] > cls.W // 2) and (keyVals[-1] < cls.W // 2):
-                            cls.totalPeople -= 1
-                            cls.totalDown += 1
-                            SendReceiveMessages.increment_face_detected_locally()
-                            cls.__update_time(cls.exit_dict)
+            move_dict[objectID].append(centroid[1])
+        return move_dict
 
-                        # FINISH CODE BEFORE THIS
-                        values = move_dict[keyName]
-                        values.append("Counted")
-                        move_dict[keyName] = values
-                        to.counted = True
+    @classmethod
+    def __populate_trackable_object_dict(cls, objects):
+        """
+        This method populates trackable object dict.
+        It creates a trackable object instance when the objectID is not found in the dict.
+        It appends to the centroids list when it found a trackable object for that object id.
+        :param objects: dict
+        :return: dict
+        """
+        trackable_object_dict = {}
+        for (objectID, centroid) in objects.items():
+            if objectID not in trackable_object_dict:
+                trackable_object_dict[objectID] = TrackableObject(objectID, centroid)
+            else:
+                trackable_object_dict[objectID].centroids.append(centroid)
+        return trackable_object_dict
 
-            cls.trackable_objects[objectID] = to
+    @classmethod
+    def __perform_centroid_tracking(cls):
+        # Pass in the list of rects of the 4 tuple values to the centroid tracker.
+        objects = cls.ct.update(cls.rects)
+        move_dict = cls.__populate_move_dict(objects)
+        for keyName in move_dict:
+            keyVals = move_dict[keyName]
+            if "Counted" in keyVals:
+                pass
+            elif (keyVals[0] < cls.W // 2) and (keyVals[-1] > cls.W // 2):
+                cls.totalUp += 1
+                cls.totalPeople += 1
+                cls.send_receive_message_instance.decrement_face_detected_locally()
+                cls.__update_time(cls.enter_dict)
+            elif (keyVals[0] > cls.W // 2) and (keyVals[-1] < cls.W // 2):
+                cls.totalPeople -= 1
+                cls.totalDown += 1
+                cls.send_receive_message_instance.increment_face_detected_locally()
+                cls.__update_time(cls.exit_dict)
+            move_dict[keyName].append("Counted")
+
+        for (objectID, centroid) in objects.items():
             text = "ID {}".format(objectID)
             cv2.putText(cls.frame, text, (centroid[0] - 10, centroid[1] - 10),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
@@ -176,21 +243,38 @@ class FaceTracker:
 
     @classmethod
     def thread_for_capturing_face(cls):
-        print("[INFO] Running thread_for_capturing_face...")
+        Logger.logger().debug("[INFO] Running thread_for_capturing_face...")
         cls.__load_model()
+        Logger.logger().debug("1. Successfully loaded caffe model and set the preferred target.")
         cls.__start_video_capture()
+        Logger.logger().debug("2. Successfully started video capture.")
         cls.__load_centroid_tracker()
+        Logger.logger().debug("3. Successfully instantiated the centroid tracker.")
 
         while cls.run_program:
             cls.__populate_a_frame_and_blob()
+            Logger.logger().debug("4. Successfully populated a video frame and blob.")
             cls.__load_the_blob_into_caffe_model()
-            status = "Waiting"
+            Logger.logger().debug("5. successfully loaded the blob into the caffe model and set the forward detections.")
             cls.rects = []
-            if cls.totalFrames % 10 == 0:
-                cls.__detect_a_human()
-            else:
-                cls.__perform_tracking()
+
+            Logger.logger().debug("6. Draw a line to differentiate if the person is entering or exiting.")
+            cls.__draw_a_line_to_differentiate_if_the_person_is_entering_or_exiting()
+
+            for current_index in np.arange(0, cls.detections.shape[2]):
+                Logger.logger().debug("7. Going to perform human detection and populate tracker object.")
+                if cls.__is_person(current_index):
+                    Logger.logger().info("8. Found a person, successfully populated tracker object into tracker list.")
+                    cls.__populate_a_tracker_object_and_add_it_to_trackers_list(current_index)
+            if len(cls.trackers) == MAX_TRACKER_LIST_SIZE:
+                Logger.logger().debug("9. Going to populate tracker position tuple into rects list.")
+                cls.__populate_tracker_position_tuple_into_rects_list()
+                # Remember to clear the trackers list.
                 cls.trackers = []
+                Logger.logger().debug("10. Perform centroid tracking.")
                 cls.__perform_centroid_tracking()
-                cls.__draw_a_line_to_differentiate_if_the_person_is_entering_or_exiting()
-            cls.totalFrames += 1
+            cv2.imshow("Frame", cls.frame)
+
+
+if __name__ == '__main__':
+    FaceTracker.perform_job(send_receive_message_instance=SendReceiveMessages())

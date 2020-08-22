@@ -2,6 +2,7 @@
 from constants import SPEECH_FILENAME
 import subprocess
 import os
+from logger import Logger
 
 
 class PlayAudio:
@@ -18,14 +19,14 @@ class PlayAudio:
         play_audio_successful = False
         try:
             speech_file_path = os.path.join(os.path.dirname(__file__), SPEECH_FILENAME)
-            print("Trying to open {}.".format(speech_file_path))
+            Logger.logger().info("Trying to open {}.".format(speech_file_path))
             return_code = subprocess.call(["afplay", speech_file_path])
             play_audio_successful = True
         except KeyboardInterrupt:
-            print('\nInterrupted by user')
+            Logger.logger().info('\nInterrupted by user')
         except Exception as e:
-            print(type(e).__name__ + ': ' + str(e))
+            Logger.logger().info(type(e).__name__ + ': ' + str(e))
         else:
-            print("Played {} with return code {}.".format(SPEECH_FILENAME, return_code))
+            Logger.logger().info("Played {} with return code {}.".format(SPEECH_FILENAME, return_code))
         finally:
             return play_audio_successful

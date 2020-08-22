@@ -7,6 +7,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import formatdate
 from constants import ENTER_EXCEL_SHEET_NAME, EXIT_EXCEL_SHEET_NAME
+from logger import Logger
 
 
 class EmailSender:
@@ -24,11 +25,11 @@ class EmailSender:
         """
         email_sent_status = False
 
-        print("[INFO]: Running send_email function")
+        Logger.logger().info("Running send_email function")
         enter_excel_sheet = os.path.join(os.path.dirname(__file__), enter_excel_sheet)
         exit_excel_sheet = os.path.join(os.path.dirname(__file__), exit_excel_sheet)
-        print(enter_excel_sheet)
-        print(exit_excel_sheet)
+        Logger.logger().info(enter_excel_sheet)
+        Logger.logger().info(exit_excel_sheet)
         msg = MIMEMultipart()
         sender_email = "maskdetector101@gmail.com"
         receiver_email = "srinivassriram06@gmail.com"
