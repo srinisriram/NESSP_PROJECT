@@ -53,7 +53,7 @@ class HumanValidator:
             day = time_stamp.strftime("%d")
             time = time_stamp.strftime("%H:%M:%S")
 
-            if SEND_EMAIL:
+            if SEND_EMAIL and frame is not None:
                 # initialize the image id, and the temporary file
                 imageID = time_stamp.strftime("%H%M%S%f")
                 tempFile = TempFile()
@@ -63,7 +63,7 @@ class HumanValidator:
                             (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 255, 0), 1)
                 # write the speed: first get the size of the text
                 size, base = cv2.getTextSize("%s " % repr(trackable_object.direction), cv2.FONT_HERSHEY_SIMPLEX, 2,
-                                                 3)
+                                             3)
                 # then center it horizontally on the image
                 cntr_x = int((frame.shape[1] - size[0]) / 2)
                 cv2.putText(frame, "%s " % repr(trackable_object.direction),

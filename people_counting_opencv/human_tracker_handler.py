@@ -3,6 +3,7 @@ from constants import COLUMN_SAMPLE_POINTS_LIST, Direction, COLUMN, TIMEOUT_FOR_
 from logger import Logger
 import cv2
 from datetime import datetime
+from human_validator import HumanValidator
 
 
 class HumanTrackerHandler:
@@ -43,22 +44,65 @@ class HumanTrackerHandler:
         # store the trackable object in our dictionary
         cls.human_tracking_dict[objectID] = human_tracked_object
         cls.draw_id_centroid_on_output_frame(frame, centroid, objectID)
-        cls.compute_direction_for_dangling_object_ids()
 
     @classmethod
     def clear_object_from_speed_tracking_dict(cls, objectID):
         del (cls.human_tracking_dict[objectID])
 
     @classmethod
-    def compute_direction_for_dangling_object_ids(cls):
-        for object_id, human_tracker_object in cls.human_tracking_dict.items():
-            if human_tracker_object.estimated or len(human_tracker_object.timestamp_list) <= 1:
-                continue
+    def handle_special_cases_for_dangling_object_ids(cls, human_tracker_object, send_receive_message_instance):
+
+        #if len(human_tracker_object.timestamp_list) == 0:
+        #    Logger.logger().info("Deleting objectId {} from the human_tracking_dict because there"
+        #                         "are no recorded timestamps.".format(human_tracker_object.objectID))
+        #    cls.clear_object_from_speed_tracking_dict(human_tracker_object.objectID)
+
+        if len(human_tracker_object.timestamp_list) == 1:
             now = datetime.now()
             duration = now - human_tracker_object.timestamp_list[-1]
             if duration.total_seconds() > TIMEOUT_FOR_TRACKER:
+                Logger.logger().info("For objectId {} there is only one position_list {}. "
+                                     "Assuming it to be entering the building".format(
+                    human_tracker_object.objectID, human_tracker_object.position_list[-1]))
+            human_tracker_object.direction = Direction.ENTER
+            human_tracker_object.estimated = True
+            HumanValidator.validate_column_movement(human_tracker_object, datetime.now(), None,
+                                                    human_tracker_object.objectID,
+                                                    send_receive_message_instance)
+
+    @classmethod
+    def handle_expected_cases_for_dangling_object_ids(cls, human_tracker_object, send_receive_message_instance):
+        now = datetime.now()
+        duration = now - human_tracker_object.timestamp_list[-1]
+        if duration.total_seconds() > TIMEOUT_FOR_TRACKER:
+            if human_tracker_object.estimated:
+                if human_tracker_object.logged:
+                    Logger.logger().info("Deleting objectId {} from the human_tracking_dict.".format(
+                        human_tracker_object.objectID))
+                    cls.clear_object_from_speed_tracking_dict(human_tracker_object.objectID)
+                else:
+                    Logger.logger().info("Logging objectId {} found the human_tracking_dict.".format(
+                        human_tracker_object.objectID))
+                    HumanValidator.validate_column_movement(human_tracker_object, now, None,
+                                                            human_tracker_object.objectID,
+                                                            send_receive_message_instance)
+            else:
+                Logger.logger().info("Computing direction for objectId {} because there are no recorded"
+                                     " movements for this object in human_tracking_dict.".format(
+                    human_tracker_object.objectID))
                 cls.compute_direction(0, human_tracker_object.current_index - 1, human_tracker_object)
                 human_tracker_object.estimated = True
+                HumanValidator.validate_column_movement(human_tracker_object, now, None,
+                                                        human_tracker_object.objectID,
+                                                        send_receive_message_instance)
+
+    @classmethod
+    def compute_direction_for_dangling_object_ids(cls, send_receive_message_instance):
+        for object_id, human_tracker_object in cls.human_tracking_dict.copy().items():
+            if not human_tracker_object.timestamp_list or len(human_tracker_object.timestamp_list) < 1:
+                cls.handle_special_cases_for_dangling_object_ids(human_tracker_object, send_receive_message_instance)
+            else:
+                cls.handle_expected_cases_for_dangling_object_ids(human_tracker_object, send_receive_message_instance)
 
     @classmethod
     def record_column_traversed_index(cls, trackable_object, centroid, ts):

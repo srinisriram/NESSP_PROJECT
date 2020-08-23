@@ -142,6 +142,8 @@ class HumanDetector:
                 HumanValidator.validate_column_movement(speed_tracked_object, self.current_time_stamp, self.frame,
                                                         objectID, HumanDetector.send_receive_message_instance)
 
+            HumanTrackerHandler.compute_direction_for_dangling_object_ids(HumanDetector.send_receive_message_instance)
+
             # if the *display* flag is set, then display the current frame
             # to the screen and record if a user presses a key
             if OPEN_DISPLAY:
