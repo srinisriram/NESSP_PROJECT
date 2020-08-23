@@ -8,7 +8,7 @@ import pandas as pd
 from datetime import datetime
 import pytz
 import threading
-from constants import prototxt, model, CLASSES, MAX_TRACKER_LIST_SIZE
+from constants import prototxt, model, CLASSES, MAX_TRACKER_LIST_SIZE, VIDEO_DEV_ID
 import time
 from collections import defaultdict
 import os
@@ -24,6 +24,8 @@ class FaceTracker:
     run_program = True
 
     send_receive_message_instance = None
+    __input_video_file_path = None
+    __preferable_target = None
     net = None
     vs = None
     ct = None
@@ -72,8 +74,12 @@ class FaceTracker:
         prototxt_path = os.path.join(os.path.dirname(__file__), prototxt)
         model_path = os.path.join(os.path.dirname(__file__), model)
         cls.net = cv2.dnn.readNetFromCaffe(prototxt_path, model_path)
-        # cls.net.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
-
+        if cls.__preferable_target == cv2.dnn.DNN_TARGET_MYRIAD:
+            Logger.logger().info("Setting the inference engine to be Movidius NCS stick on Raspberry PI.")
+            cls.net.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
+        else:
+            Logger.logger().info("Setting the inference engine target to {}.".format(cls.__preferable_target))
+            cls.net.setPreferableTarget(cls.__preferable_target)
     @classmethod
     def __start_video_capture(cls):
         """
@@ -81,7 +87,13 @@ class FaceTracker:
         :return:
         """
         Logger.logger().info("starting video stream...")
-        cls.vs = cv2.VideoCapture(0)
+        if cls.__input_video_file_path:
+            Logger.logger().info("setting the video file path ={} as input to the video capture.".format(
+                cls.__input_video_file_path))
+            cls.vs = cv2.VideoCapture(cls.__input_video_file_path)
+        else:
+            Logger.logger().info("Setting video capture device to {}.".format(VIDEO_DEV_ID))
+            cls.vs = cv2.VideoCapture(1)
         time.sleep(2.0)
 
     @classmethod
@@ -99,7 +111,11 @@ class FaceTracker:
         It also populates the other frame parameters used later in other methods.
         :return:
         """
-        cls.ret, cls.frame = cls.vs.read()
+        if cls.__input_video_file_path:
+            cls.frame = cls.vs.read()
+        else:
+            cls.ret, cls.frame = cls.vs.read()
+
         cls.frame = cv2.resize(cls.frame, (240, 240), interpolation=cv2.INTER_AREA)
         cls.rgb = cv2.cvtColor(cls.frame, cv2.COLOR_BGR2RGB)
         (cls.H, cls.W) = cls.frame.shape[:2]
@@ -224,13 +240,11 @@ class FaceTracker:
             if "Counted" in keyVals:
                 pass
             elif (keyVals[0] < cls.W // 2) and (keyVals[-1] > cls.W // 2):
-                cls.totalUp += 1
-                cls.totalPeople += 1
+                Logger.logger().info("Detected a human leave the boundary line. Decrementing the local face count.")
                 cls.send_receive_message_instance.decrement_face_detected_locally()
                 cls.__update_time(cls.enter_dict)
             elif (keyVals[0] > cls.W // 2) and (keyVals[-1] < cls.W // 2):
-                cls.totalPeople -= 1
-                cls.totalDown += 1
+                Logger.logger().info("Detected a human cross the boundary line. Incrementing the local face count.")
                 cls.send_receive_message_instance.increment_face_detected_locally()
                 cls.__update_time(cls.exit_dict)
             move_dict[keyName].append("Counted")
@@ -242,7 +256,10 @@ class FaceTracker:
             cv2.circle(cls.frame, (centroid[0], centroid[1]), 4, (0, 255, 0), -1)
 
     @classmethod
-    def thread_for_capturing_face(cls):
+    def thread_for_capturing_face(cls, input_video_file_path=None, preferable_target=cv2.dnn.DNN_TARGET_MYRIAD):
+        if input_video_file_path:
+            cls.__input_video_file_path = input_video_file_path
+        cls.__preferable_target = preferable_target
         Logger.logger().debug("[INFO] Running thread_for_capturing_face...")
         cls.__load_model()
         Logger.logger().debug("1. Successfully loaded caffe model and set the preferred target.")
@@ -267,11 +284,11 @@ class FaceTracker:
                     Logger.logger().info("8. Found a person, successfully populated tracker object into tracker list.")
                     cls.__populate_a_tracker_object_and_add_it_to_trackers_list(current_index)
             if len(cls.trackers) == MAX_TRACKER_LIST_SIZE:
-                Logger.logger().debug("9. Going to populate tracker position tuple into rects list.")
+                Logger.logger().info("9. Going to populate tracker position tuple into rects list.")
                 cls.__populate_tracker_position_tuple_into_rects_list()
                 # Remember to clear the trackers list.
                 cls.trackers = []
-                Logger.logger().debug("10. Perform centroid tracking.")
+                Logger.logger().info("10. Perform centroid tracking.")
                 cls.__perform_centroid_tracking()
             cv2.imshow("Frame", cls.frame)
 

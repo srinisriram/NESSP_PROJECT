@@ -18,7 +18,8 @@ class Logger(object):
             cls.__ch.setLevel(level)
 
             # create formatter
-            formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+            formatter = logging.Formatter(
+                '%(asctime)s - %(name)s - %(filename)s - %(lineno)d %(levelname)s - %(message)s')
 
             # add formatter to ch
             cls.__ch.setFormatter(formatter)

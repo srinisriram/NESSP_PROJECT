@@ -6,7 +6,7 @@ from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import formatdate
-from constants import ENTER_EXCEL_SHEET_NAME, EXIT_EXCEL_SHEET_NAME
+from constants import ENTER_LOG_FILE_NAME, EXIT_LOG_FILE_NAME
 from logger import Logger
 
 
@@ -16,7 +16,7 @@ class EmailSender:
     """
 
     @classmethod
-    def send_email(cls, enter_excel_sheet=ENTER_EXCEL_SHEET_NAME, exit_excel_sheet=EXIT_EXCEL_SHEET_NAME):
+    def send_email(cls, enter_excel_sheet=ENTER_LOG_FILE_NAME, exit_excel_sheet=EXIT_LOG_FILE_NAME):
         """
         This method sends an email with the provided credentials.
         :param exit_excel_sheet: str
@@ -25,11 +25,11 @@ class EmailSender:
         """
         email_sent_status = False
 
-        Logger.logger().info("Running send_email function")
+        Logger.logger().debug("Running send_email function")
         enter_excel_sheet = os.path.join(os.path.dirname(__file__), enter_excel_sheet)
         exit_excel_sheet = os.path.join(os.path.dirname(__file__), exit_excel_sheet)
-        Logger.logger().info(enter_excel_sheet)
-        Logger.logger().info(exit_excel_sheet)
+        Logger.logger().debug(enter_excel_sheet)
+        Logger.logger().debug(exit_excel_sheet)
         msg = MIMEMultipart()
         sender_email = "maskdetector101@gmail.com"
         receiver_email = "srinivassriram06@gmail.com"

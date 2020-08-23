@@ -1,7 +1,8 @@
 # This file implements the code for detecting and counting humans.
 import argparse
 from constants import SERVER_PORT
-from face_tracker import FaceTracker
+# from face_tracker import FaceTracker
+from human_detector import HumanDetector
 from send_receive_messages import SendReceiveMessages
 import time
 import logging
@@ -23,13 +24,15 @@ class OccupancyDetector:
         Logger.logger().debug("Invoking OccupancyDetector:perform_job")
         send_receive_message_instance = SendReceiveMessages()
         send_receive_message_instance.perform_job(peer_ip_address, peer_port)
-        FaceTracker.perform_job(send_receive_message_instance)
+        # FaceTracker.perform_job(send_receive_message_instance)
+        HumanDetector.perform_job(send_receive_message_instance)
 
         try:
             while True:
                 time.sleep(1)
         except Exception as e:
-            FaceTracker.run_program = False
+            # FaceTracker.run_program = False
+            HumanDetector.run_program = False
             SendReceiveMessages.run_program = False
             Logger.logger().info(type(e).__name__ + ': ' + str(e))
         finally:
