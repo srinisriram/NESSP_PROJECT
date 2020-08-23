@@ -33,7 +33,7 @@ COLUMN_SAMPLE_POINTS_LIST = [60, 120, 180, 240]
 COLUMN = 1
 
 # minimum confidence
-MIN_CONFIDENCE = 0.7
+MIN_CONFIDENCE = 0.4
 
 CLASSES = ["background", "aeroplane", "bicycle", "bird", "boat",
            "bottle", "bus", "car", "cat", "chair", "cow", "diningtable",
