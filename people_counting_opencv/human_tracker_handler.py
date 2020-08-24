@@ -1,5 +1,5 @@
 from human_tracker import HumanTracker
-from constants import COLUMN_SAMPLE_POINTS_LIST, Direction, COLUMN, TIMEOUT_FOR_TRACKER
+from constants import COLUMN_SAMPLE_POINTS_LIST, Direction, COLUMN, TIMEOUT_FOR_TRACKER, DEMARCATION_LINE
 from logger import Logger
 import cv2
 from datetime import datetime
@@ -50,59 +50,71 @@ class HumanTrackerHandler:
         del (cls.human_tracking_dict[objectID])
 
     @classmethod
-    def handle_special_cases_for_dangling_object_ids(cls, human_tracker_object, send_receive_message_instance):
-
-        #if len(human_tracker_object.timestamp_list) == 0:
-        #    Logger.logger().info("Deleting objectId {} from the human_tracking_dict because there"
-        #                         "are no recorded timestamps.".format(human_tracker_object.objectID))
-        #    cls.clear_object_from_speed_tracking_dict(human_tracker_object.objectID)
-
-        if len(human_tracker_object.timestamp_list) == 1:
+    def handle_zero_time_stamp_list(cls, human_tracker_object):
+        """
+        This method is invoked when there is no timestamp recorded for this tracker.
+        In this case, this method initially computes the current time and stores it in empty_recorded_timestamp.
+        Since the grace period (TIMEOUT_FOR_TRACKER) is already over, this method deletes the tracker object
+        from the speed_tracking_dict.
+        :param human_tracker_object: Instance of type HumanTracker.
+        :return:
+        """
+        if human_tracker_object.empty_recorded_timestamp:
             now = datetime.now()
-            duration = now - human_tracker_object.timestamp_list[-1]
+            duration = now - human_tracker_object.empty_recorded_timestamp
             if duration.total_seconds() > TIMEOUT_FOR_TRACKER:
-                Logger.logger().info("For objectId {} there is only one position_list {}. "
-                                     "Assuming it to be entering the building".format(
-                    human_tracker_object.objectID, human_tracker_object.position_list[-1]))
-            human_tracker_object.direction = Direction.ENTER
-            human_tracker_object.estimated = True
-            HumanValidator.validate_column_movement(human_tracker_object, datetime.now(), None,
-                                                    human_tracker_object.objectID,
-                                                    send_receive_message_instance)
+                Logger.logger().info("Deleting objectId {} for empty timestamp "
+                                     "from the human_tracking_dict.".format(
+                                     human_tracker_object.objectID))
+                cls.clear_object_from_speed_tracking_dict(human_tracker_object.objectID)
+        else:
+            human_tracker_object.empty_recorded_timestamp = datetime.now()
 
     @classmethod
-    def handle_expected_cases_for_dangling_object_ids(cls, human_tracker_object, send_receive_message_instance):
-        now = datetime.now()
-        duration = now - human_tracker_object.timestamp_list[-1]
-        if duration.total_seconds() > TIMEOUT_FOR_TRACKER:
-            if human_tracker_object.estimated:
-                if human_tracker_object.logged:
-                    Logger.logger().info("Deleting objectId {} from the human_tracking_dict.".format(
-                        human_tracker_object.objectID))
-                    cls.clear_object_from_speed_tracking_dict(human_tracker_object.objectID)
-                else:
-                    Logger.logger().info("Logging objectId {} found the human_tracking_dict.".format(
-                        human_tracker_object.objectID))
-                    HumanValidator.validate_column_movement(human_tracker_object, now, None,
-                                                            human_tracker_object.objectID,
-                                                            send_receive_message_instance)
-            else:
-                Logger.logger().info("Computing direction for objectId {} because there are no recorded"
-                                     " movements for this object in human_tracking_dict.".format(
-                    human_tracker_object.objectID))
-                cls.compute_direction(0, human_tracker_object.current_index - 1, human_tracker_object)
-                human_tracker_object.estimated = True
-                HumanValidator.validate_column_movement(human_tracker_object, now, None,
-                                                        human_tracker_object.objectID,
-                                                        send_receive_message_instance)
+    def handle_the_case_where_grace_time_for_tracking_is_over(cls, now, human_tracker_object,
+                                                              send_receive_message_instance):
+        """
+        This method handles the case where the grace time (TIMEOUT_FOR_TRACKER) for the tracker object is over.
+        :param now: timestamp
+        :param human_tracker_object: Instance of type HumanTracker.
+        :param send_receive_message_instance: Instance of type SendReceiveMessages
+        :return:
+        """
+        if human_tracker_object.estimated and human_tracker_object.logged:
+            # Delete this object from speed tracking dict.
+            Logger.logger().info("Deleting objectId {} from the human_tracking_dict.".format(
+                human_tracker_object.objectID))
+            cls.clear_object_from_speed_tracking_dict(human_tracker_object.objectID)
+        else:
+            Logger.logger().info("Computing direction for objectId {} because there are no recorded"
+                                 " movements for this object in human_tracking_dict.".format(
+                human_tracker_object.objectID))
+            cls.compute_direction(0, human_tracker_object.current_index - 1, human_tracker_object)
+            human_tracker_object.estimated = True
+        # Finally log it.
+        Logger.logger().info("Perform logging for objectId {} found the human_tracking_dict.".format(
+            human_tracker_object.objectID))
+        HumanValidator.validate_column_movement(human_tracker_object, now, None,
+                                                human_tracker_object.objectID,
+                                                send_receive_message_instance)
 
     @classmethod
     def compute_direction_for_dangling_object_ids(cls, send_receive_message_instance):
+        """
+        This method computes direction for dangling objects found in speed_tracking_dict.
+        This can happen when the person was tracked only at a few sampling points (column traversal).
+        :param send_receive_message_instance: Instance of type SendReceiveMessages
+        :return:
+        """
         for object_id, human_tracker_object in cls.human_tracking_dict.copy().items():
-            if not human_tracker_object.timestamp_list or len(human_tracker_object.timestamp_list) < 1:
-                cls.handle_special_cases_for_dangling_object_ids(human_tracker_object, send_receive_message_instance)
-            else:
-                cls.handle_expected_cases_for_dangling_object_ids(human_tracker_object, send_receive_message_instance)
+            if len(human_tracker_object.timestamp_list) == 0:
+                cls.handle_zero_time_stamp_list(human_tracker_object)
+                return
+            now = datetime.now()
+            duration = now - human_tracker_object.timestamp_list[-1]
+            if duration.total_seconds() > TIMEOUT_FOR_TRACKER:
+                cls.handle_the_case_where_grace_time_for_tracking_is_over(now, human_tracker_object,
+                                                                          send_receive_message_instance)
 
     @classmethod
     def record_column_traversed_index(cls, trackable_object, centroid, ts):
@@ -135,7 +147,17 @@ class HumanTrackerHandler:
         Logger.logger().debug("position_list={}".format(trackable_object.position_list))
         d = trackable_object.position_list[end] - trackable_object.position_list[start]
         if d == 0:
-            Logger.logger().debug("Invalid position for column traversal found.")
+            Logger.logger().info("Invalid position for column traversal found.")
+            Logger.logger().info("Found a case where there is only one entry in the tracker position list.")
+            if trackable_object.position_list[end] <= DEMARCATION_LINE:
+                Logger.logger().info("Since {} is less than or equal to {}, assuming that the person is entering".
+                                     format(trackable_object.position_list[end], DEMARCATION_LINE))
+                trackable_object.direction = Direction.ENTER
+            else:
+                Logger.logger().info("Since {} is greater than {}, assuming that the person is exiting".format(
+                    trackable_object.position_list[end], DEMARCATION_LINE))
+                trackable_object.direction = Direction.EXIT
+
             return
 
         if d > 0:

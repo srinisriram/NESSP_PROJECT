@@ -49,7 +49,9 @@ SEND_EMAIL = True
 
 TIMEOUT_FOR_TRACKER = 10
 
-TEST_VIDEO_FILE_PATH = 'videos/example_01.mp4'
+DEMARCATION_LINE = 100
+
+TEST_VIDEO_FILE_PATH = 'videos/example_02.mp4'
 
 # Log file name
 ENTER_LOG_FILE_NAME = "enter_file.csv"
