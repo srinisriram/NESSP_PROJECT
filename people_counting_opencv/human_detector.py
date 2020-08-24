@@ -13,6 +13,7 @@ from imutils.video import VideoStream
 from human_validator import HumanValidator
 from human_tracker_handler import HumanTrackerHandler
 from centroid_object_creator import CentroidObjectCreator
+from send_receive_messages import SendReceiveMessages
 import threading
 
 # import the necessary packages
@@ -89,7 +90,7 @@ class HumanDetector:
             self.video_stream = cv2.VideoCapture(HumanDetector.input_video_file_path)
         elif USE_PI_CAMERA:
             Logger.logger().info("Setting video capture device to PI CAMERA.")
-            self.video_stream = VideoStream(usePiCamera=True).start()
+            self.video_stream = VideoStream(0).start()
         else:
             Logger.logger().info("Setting video capture device to {}.".format(VIDEO_DEV_ID))
             self.video_stream = VideoStream(src=VIDEO_DEV_ID).start()
@@ -104,7 +105,7 @@ class HumanDetector:
             if self.video_stream.isOpened():
                 _, self.frame = self.video_stream.read()
         else:
-            ret, self.frame = self.video_stream.read()
+            self.frame = self.video_stream.read()
         if self.frame is None:
             return
 
@@ -184,3 +185,8 @@ class HumanDetector:
                 self.clean_up()
                 time.sleep(10)
         self.clean_up()
+
+
+if __name__ == '__main__':
+    HumanDetector.perform_job(send_receive_message_instance=SendReceiveMessages(),
+                              preferable_target=cv2.dnn.DNN_TARGET_CPU)

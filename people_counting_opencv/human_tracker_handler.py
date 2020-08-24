@@ -32,8 +32,6 @@ class HumanTrackerHandler:
                 Logger.logger().info("Creating a new speed tracker object with object id = {}.".format(objectID))
                 human_tracker_object = HumanTracker(objectID, centroid)
                 cls.human_tracking_dict[objectID] = human_tracker_object
-                if len(cls.human_tracking_dict) > 100:
-                    cls.human_tracking_dict.clear()
             else:
                 human_tracker_object.centroids.append(centroid)
             yield human_tracker_object, objectID, centroid

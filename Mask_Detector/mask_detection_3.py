@@ -40,7 +40,7 @@ COLORS = np.random.uniform(0, 255, size=(len(CLASSES), 3))
 
 net = cv2.dnn.readNetFromCaffe(prototxt="models/MobileNetSSD_deploy.prototxt.txt",
                                caffeModel="models/MobileNetSSD_deploy.caffemodel")
-net.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
+#net.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
 
 ap = argparse.ArgumentParser()
 ap.add_argument("-d", "--detector", type=str, default="face_detection_model",
@@ -61,13 +61,13 @@ protoPath = os.path.sep.join([args["detector"], "deploy.prototxt"])
 modelPath = os.path.sep.join([args["detector"],
                               "res10_300x300_ssd_iter_140000.caffemodel"])
 detector = cv2.dnn.readNetFromCaffe(protoPath, modelPath)
-detector.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
+#detector.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
 
 # load our serialized face embedding model from disk and set the
 # preferable target to MYRIAD
 print("[INFO] loading face recognizer...")
 embedder = cv2.dnn.readNetFromTorch(args["embedding_model"])
-embedder.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
+#embedder.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
 
 # load the actual face recognition model along with the label encoder
 recognizer = pickle.loads(open(args["recognizer"], "rb").read())

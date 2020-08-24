@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/NESSP_PROJECT.iml" filepath="$PROJECT_DIR$/.idea/NESSP_PROJECT.iml" />
       <module fileurl="file://$PROJECT_DIR$/../People_Counter/.idea/People_Counter.iml" filepath="$PROJECT_DIR$/../People_Counter/.idea/People_Counter.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../car_speed_detector/.idea/car_speed_detector.iml" filepath="$PROJECT_DIR$/../car_speed_detector/.idea/car_speed_detector.iml" />
       <module fileurl="file://$PROJECT_DIR$/../zoomClass/.idea/zoomClass.iml" filepath="$PROJECT_DIR$/../zoomClass/.idea/zoomClass.iml" />
     </modules>
   </component>
