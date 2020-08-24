@@ -8,6 +8,7 @@ import dlib
 import imutils
 import numpy as np
 import cv2
+import logging
 from imutils.video import FPS
 from imutils.video import VideoStream
 from human_validator import HumanValidator
@@ -17,7 +18,8 @@ from send_receive_messages import SendReceiveMessages
 import threading
 
 # import the necessary packages
-from constants import PROTO_TEXT_FILE, MODEL_NAME, FRAME_WIDTH_IN_PIXELS, OPEN_DISPLAY, VIDEO_DEV_ID, USE_PI_CAMERA
+from constants import PROTO_TEXT_FILE, MODEL_NAME, FRAME_WIDTH_IN_PIXELS, OPEN_DISPLAY, VIDEO_DEV_ID, \
+    USE_PI_CAMERA, SERVER_PORT
 from logger import Logger
 
 
@@ -188,5 +190,15 @@ class HumanDetector:
 
 
 if __name__ == '__main__':
-    HumanDetector.perform_job(send_receive_message_instance=SendReceiveMessages(),
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-i", "--peer_ip_address", type=str, help="Provide the IP address of the remote raspberry PI.")
+    parser.add_argument("-p", "--peer_port", type=int, help="Provide the server port of the remote raspberry PI.",
+                        default=SERVER_PORT)
+    parser.add_argument('-d', '--debug', type=bool, help='Enable debug logging.', default=False)
+    args = parser.parse_args()
+    if args.debug:
+        Logger.set_log_level(logging.DEBUG)
+    send_rcv_inst = SendReceiveMessages()
+    send_rcv_inst.perform_job()
+    HumanDetector.perform_job(send_receive_message_instance=send_rcv_inst,
                               preferable_target=cv2.dnn.DNN_TARGET_CPU)

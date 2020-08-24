@@ -14,7 +14,7 @@ class SendReceiveMessages:
     """
     run_program = True
 
-    def perform_job(self, peer_ip_address, peer_port, local_ip_address='', local_port=SERVER_PORT):
+    def perform_job(self, peer_ip_address='', peer_port=SERVER_PORT+1, local_ip_address='', local_port=SERVER_PORT):
         """
         This method performs Send receive face detection count between two raspberry PI's.
         :param local_port: int
@@ -24,9 +24,9 @@ class SendReceiveMessages:
         :return:
         """
         t1 = threading.Thread(target=self.method_for_receiving_face_detected_by_peer,
-                              args=(local_ip_address, local_port))
+                               args=(local_ip_address, local_port))
         t2 = threading.Thread(target=self.method_for_transmitting_face_detected_locally,
-                              args=(peer_ip_address, peer_port))
+                               args=(peer_ip_address, peer_port))
         t3 = threading.Thread(target=self.method_for_comparing_local_face_detected_and_global_face_detected)
         # starting thread 1
         t1.start()

@@ -21,11 +21,11 @@ class TestFaceTracker(unittest.TestCase):
         video_file_path = os.path.join('/'.join(os.path.dirname(__file__).split('/')[:-1]), TEST_VIDEO_FILE_PATH)
         Logger.logger().info("Trying to open {}.".format(video_file_path))
         HumanDetector.send_receive_message_instance = SendReceiveMessages()
+        HumanDetector.send_receive_message_instance.perform_job()
         HumanDetector.input_video_file_path = video_file_path
         HumanDetector.preferable_target = cv2.dnn.DNN_TARGET_CPU
-        #FaceTracker.thread_for_capturing_face(video_file_path, preferable_target=cv2.dnn.DNN_TARGET_CPU)
+        # FaceTracker.thread_for_capturing_face(video_file_path, preferable_target=cv2.dnn.DNN_TARGET_CPU)
         HumanDetector().thread_for_face_tracker()
-
 
     def test_face_tracker_locally_on_mac(self):
         # Logger.set_log_level(logging.DEBUG)
@@ -33,8 +33,9 @@ class TestFaceTracker(unittest.TestCase):
         Logger.logger().info("Trying to open {}.".format(video_file_path))
         HumanDetector.send_receive_message_instance = SendReceiveMessages()
         HumanDetector.preferable_target = cv2.dnn.DNN_TARGET_CPU
-        #FaceTracker.thread_for_capturing_face(video_file_path, preferable_target=cv2.dnn.DNN_TARGET_CPU)
+        # FaceTracker.thread_for_capturing_face(video_file_path, preferable_target=cv2.dnn.DNN_TARGET_CPU)
         HumanDetector().thread_for_face_tracker()
+
 
 if __name__ == '__main__':
     unittest.main()

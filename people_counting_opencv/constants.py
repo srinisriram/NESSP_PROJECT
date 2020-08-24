@@ -57,7 +57,7 @@ TEST_VIDEO_FILE_PATH = 'videos/example_01.mp4'
 ENTER_LOG_FILE_NAME = "enter_file.csv"
 EXIT_LOG_FILE_NAME = "exit_file.csv"
 
-USE_PI_CAMERA = False
+USE_PI_CAMERA = True
 
 
 class Direction(Enum):
