@@ -203,26 +203,9 @@ def thread_for_maskDetection():
                 j = np.argmax(preds)
                 proba = preds[j]
                 name = le.classes_[j]
-                fail_safe.append(name)
-                '''
-                if human_detected and i != 1:
-                    play_obj = wave_obj.play()
-                    play_obj.wait_done()
-                    i = 1
-                '''
-                if len(fail_safe) == 1:
-                    most_freq = most_frequent(fail_safe)
-                    if most_freq == "with_mask":
-                        print("Your good to go!")
-                        # play_obj2 = wave_obj2.play()
-                        # play_obj2.wait_done()
-                        fail_safe.clear()
-                    elif most_freq == "without_mask":
-                        print("Please wear a mask to enter")
-                        playSound = True
-                        fail_safe.clear()
-                # if len(fail_safe) < 3:
-                #	face_detected = False
+                if proba > 0.99 and name == "without_mask":
+                    playSound = True
+         
                 COLORS = [(0, 0, 255), (0, 255, 0)]
                 # draw the bounding box of the face along with the
                 # associated probability
