@@ -73,7 +73,7 @@ class HumanDetector:
         """
         Load our serialized model from disk
         """
-        Logger.logger().info("Loading model name:{}, proto_text:{}.".format(MODEL_NAME, PROTO_TEXT_FILE))
+        Logger.logger().debug("Loading model name:{}, proto_text:{}.".format(MODEL_NAME, PROTO_TEXT_FILE))
         self.net = cv2.dnn.readNetFromCaffe(os.path.join(
             os.path.dirname(os.path.realpath(__file__)),
             PROTO_TEXT_FILE),
@@ -87,14 +87,14 @@ class HumanDetector:
         Initialize the video stream and allow the camera sensor to warmup.
         """
         if HumanDetector.input_video_file_path:
-            Logger.logger().info("setting the video file path ={} as input to the video capture.".format(
+            Logger.logger().debug("setting the video file path ={} as input to the video capture.".format(
                 HumanDetector.input_video_file_path))
             self.video_stream = cv2.VideoCapture(HumanDetector.input_video_file_path)
         elif USE_PI_CAMERA:
-            Logger.logger().info("Setting video capture device to PI CAMERA.")
+            Logger.logger().debug("Setting video capture device to PI CAMERA.")
             self.video_stream = VideoStream(0).start()
         else:
-            Logger.logger().info("Setting video capture device to {}.".format(VIDEO_DEV_ID))
+            Logger.logger().debug("Setting video capture device to {}.".format(VIDEO_DEV_ID))
             self.video_stream = VideoStream(src=VIDEO_DEV_ID).start()
         time.sleep(2.0)
 
@@ -163,8 +163,8 @@ class HumanDetector:
     def clean_up(self):
         # stop the timer and display FPS information
         self.fps.stop()
-        Logger.logger().info("elapsed time: {:.2f}".format(self.fps.elapsed()))
-        Logger.logger().info("approx. FPS: {:.2f}".format(self.fps.fps()))
+        Logger.logger().debug("elapsed time: {:.2f}".format(self.fps.elapsed()))
+        Logger.logger().debug("approx. FPS: {:.2f}".format(self.fps.fps()))
 
         # Close the log file.
         HumanValidator.close_log_file()
@@ -173,7 +173,7 @@ class HumanDetector:
         cv2.destroyAllWindows()
 
         # clean up
-        Logger.logger().info("cleaning up...")
+        Logger.logger().debug("cleaning up...")
         if HumanDetector.input_video_file_path:
             self.video_stream.release()
         else:

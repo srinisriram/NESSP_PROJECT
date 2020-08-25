@@ -152,7 +152,7 @@ class SendReceiveMessages:
             Logger.logger().info("[INFO L 2]: {}".format(self.__total_faces_detected_locally))
             Logger.logger().info("[INFO P 3]: {}".format(self.__total_faces_detected_by_peer))
             Logger.logger().info(
-                "Thead4: Compute total faces detected by both cameras: {}".format(total_faces_detected))
+                "Thread4: Compute total faces detected by both cameras: {}".format(total_faces_detected))
             if total_faces_detected > MAX_OCCUPANCY:
                 Logger.logger().info("Please wait because the occupancy is greater than {}".format(MAX_OCCUPANCY))
                 PlayAudio.play_audio_file()

@@ -29,7 +29,7 @@ class HumanTrackerHandler:
 
             # if there is no existing trackable object, create one
             if not human_tracker_object:
-                Logger.logger().info("Creating a new speed tracker object with object id = {}.".format(objectID))
+                Logger.logger().debug("Creating a new speed tracker object with object id = {}.".format(objectID))
                 human_tracker_object = HumanTracker(objectID, centroid)
                 cls.human_tracking_dict[objectID] = human_tracker_object
             else:
@@ -61,7 +61,7 @@ class HumanTrackerHandler:
             now = datetime.now()
             duration = now - human_tracker_object.empty_recorded_timestamp
             if duration.total_seconds() > TIMEOUT_FOR_TRACKER:
-                Logger.logger().info("Deleting objectId {} for empty timestamp "
+                Logger.logger().debug("Deleting objectId {} for empty timestamp "
                                      "from the human_tracking_dict.".format(
                                      human_tracker_object.objectID))
                 cls.clear_object_from_speed_tracking_dict(human_tracker_object.objectID)
@@ -80,17 +80,17 @@ class HumanTrackerHandler:
         """
         if human_tracker_object.estimated and human_tracker_object.logged:
             # Delete this object from speed tracking dict.
-            Logger.logger().info("Deleting objectId {} from the human_tracking_dict.".format(
+            Logger.logger().debug("Deleting objectId {} from the human_tracking_dict.".format(
                 human_tracker_object.objectID))
             cls.clear_object_from_speed_tracking_dict(human_tracker_object.objectID)
         else:
-            Logger.logger().info("Computing direction for objectId {} because there are no recorded"
+            Logger.logger().debug("Computing direction for objectId {} because there are no recorded"
                                  " movements for this object in human_tracking_dict.".format(
                 human_tracker_object.objectID))
             cls.compute_direction(0, human_tracker_object.current_index - 1, human_tracker_object)
             human_tracker_object.estimated = True
         # Finally log it.
-        Logger.logger().info("Perform logging for objectId {} found the human_tracking_dict.".format(
+        Logger.logger().debug("Perform logging for objectId {} found the human_tracking_dict.".format(
             human_tracker_object.objectID))
         HumanValidator.validate_column_movement(human_tracker_object, now, None,
                                                 human_tracker_object.objectID,
@@ -145,8 +145,8 @@ class HumanTrackerHandler:
         Logger.logger().debug("position_list={}".format(trackable_object.position_list))
         d = trackable_object.position_list[end] - trackable_object.position_list[start]
         if d == 0:
-            Logger.logger().info("Invalid position for column traversal found.")
-            Logger.logger().info("Found a case where there is only one entry in the tracker position list.")
+            Logger.logger().debug("Invalid position for column traversal found.")
+            Logger.logger().debug("Found a case where there is only one entry in the tracker position list.")
             if trackable_object.position_list[end] <= DEMARCATION_LINE:
                 Logger.logger().info("Since {} is less than or equal to {}, assuming that the person is entering".
                                      format(trackable_object.position_list[end], DEMARCATION_LINE))
