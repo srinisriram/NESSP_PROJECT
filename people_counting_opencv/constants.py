@@ -51,7 +51,8 @@ TIMEOUT_FOR_TRACKER = 10
 
 DEMARCATION_LINE = 100
 
-TEST_VIDEO_FILE_PATH = 'videos/example_01.mp4'
+TEST_VIDEO_FILE_PATH_1 = 'videos/example_01.mp4'
+TEST_VIDEO_FILE_PATH_2 = 'videos/example_02.mp4'
 
 # Log file name
 ENTER_LOG_FILE_NAME = "enter_file.csv"
