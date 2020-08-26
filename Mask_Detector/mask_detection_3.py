@@ -7,40 +7,6 @@ import time
 import cv2
 import os
 import threading
-import simpleaudio as sa
-
-
-def most_frequent(List):
-    counter = 0
-    num = List[0]
-    for i in List:
-        curr_frequency = List.count(i)
-        if (curr_frequency > counter):
-            counter = curr_frequency
-            num = i
-    return num
-
-
-def gamma(image, gamma=1.0):
-    # build a lookup table mapping the pixel values [0, 255] to
-    # their adjusted gamma values
-    invGamma = 1.0 / gamma
-    table = np.array([((i / 255.0) ** invGamma) * 255
-                      for i in np.arange(0, 256)]).astype("uint8")
-    # apply gamma correction using the lookup table
-    return cv2.LUT(image, table)
-
-
-CLASSES = ["background", "aeroplane", "bicycle", "bird", "boat",
-           "bottle", "bus", "car", "cat", "chair", "cow", "diningtable",
-           "dog", "horse", "motorbike", "person", "pottedplant", "sheep",
-           "sofa", "train", "tvmonitor"]
-
-COLORS = np.random.uniform(0, 255, size=(len(CLASSES), 3))
-
-net = cv2.dnn.readNetFromCaffe(prototxt="models/MobileNetSSD_deploy.prototxt.txt",
-                               caffeModel="models/MobileNetSSD_deploy.caffemodel")
-#net.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
 
 ap = argparse.ArgumentParser()
 ap.add_argument("-d", "--detector", type=str, default="face_detection_model",
@@ -61,13 +27,13 @@ protoPath = os.path.sep.join([args["detector"], "deploy.prototxt"])
 modelPath = os.path.sep.join([args["detector"],
                               "res10_300x300_ssd_iter_140000.caffemodel"])
 detector = cv2.dnn.readNetFromCaffe(protoPath, modelPath)
-#detector.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
+# detector.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
 
 # load our serialized face embedding model from disk and set the
 # preferable target to MYRIAD
 print("[INFO] loading face recognizer...")
 embedder = cv2.dnn.readNetFromTorch(args["embedding_model"])
-#embedder.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
+# embedder.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
 
 # load the actual face recognition model along with the label encoder
 recognizer = pickle.loads(open(args["recognizer"], "rb").read())
@@ -95,6 +61,7 @@ mask_play = False
 
 totalFrames = 0
 i = 0
+
 
 def thread_for_detecting_humans():
     global CLASSES
@@ -134,7 +101,10 @@ def thread_for_detecting_humans():
         cv2.imshow("Human Detection", frame)
         key = cv2.waitKey(1) & 0xFF
 
+
 arr1 = []
+
+
 def thread_for_maskDetection():
     global human_detected
     global play_obj
@@ -238,6 +208,7 @@ def thread_for_maskDetection():
         cv2.imshow("Mask Detection", frame)
         cv2.waitKey(1)
 
+
 def thread_for_playing_sound():
     global playSound
     while True:
@@ -247,7 +218,6 @@ def thread_for_playing_sound():
             playSound = False
         else:
             pass
-
 
 
 if __name__ == "__main__":
