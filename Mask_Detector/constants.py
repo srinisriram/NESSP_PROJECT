@@ -10,7 +10,7 @@ labels_path = "labels.pickle"
 
 sound_file = "mask.wav"
 
-COLORS = [(0, 0, 255), (0, 255, 0)]
+COLORS = [(0, 255, 0), (0, 0, 255)]
 
 LABELS = ["with_mask", "without_mask"]
 
