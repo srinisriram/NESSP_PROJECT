@@ -145,6 +145,10 @@ class MaskDetector:
         self.name = self.le.classes_[self.j]
 
     def create_frame_icons(self):
+        """
+
+        :return:
+        """
         self.text = "{}: {:.2f}%".format(self.name, self.probability * 100)
         self.y = self.startY - 10 if self.startY - 10 > 10 else self.startY + 10
         self.colorIndex = LABELS.index(self.name)
