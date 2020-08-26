@@ -3,7 +3,7 @@
 from enum import Enum
 
 MAX_OCCUPANCY = 100
-SPEECH_FILENAME = 'speech.wav'
+SPEECH_FILENAME = 'max_occupancy_2.wav'
 SERVER_PORT = 10000
 MAX_NUMBER_OF_RCV_BYTES = 1024
 
