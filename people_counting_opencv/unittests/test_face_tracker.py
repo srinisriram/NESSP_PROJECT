@@ -40,7 +40,7 @@ class TestFaceTracker(unittest.TestCase):
 
     def test_face_tracker_locally_on_mac(self):
         # Logger.set_log_level(logging.DEBUG)
-        video_file_path = os.path.join('/'.join(os.path.dirname(__file__).split('/')[:-1]), TEST_VIDEO_FILE_PATH)
+        video_file_path = os.path.join('/'.join(os.path.dirname(__file__).split('/')[:-1]), TEST_VIDEO_FILE_PATH_1)
         Logger.logger().info("Trying to open {}.".format(video_file_path))
         HumanDetector.send_receive_message_instance = SendReceiveMessages()
         HumanDetector.preferable_target = cv2.dnn.DNN_TARGET_CPU
