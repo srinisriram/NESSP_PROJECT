@@ -3,7 +3,7 @@
 from enum import Enum
 
 MAX_OCCUPANCY = 100
-SPEECH_FILENAME = 'max_occupancy_2.wav'
+SPEECH_FILENAME = 'speech2.wav'
 SERVER_PORT = 10000
 MAX_NUMBER_OF_RCV_BYTES = 1024
 
@@ -33,7 +33,7 @@ COLUMN_SAMPLE_POINTS_LIST = [60, 120, 180, 240]
 COLUMN = 1
 
 # minimum confidence
-MIN_CONFIDENCE = 0.4
+MIN_CONFIDENCE = 0.5
 
 CLASSES = ["background", "aeroplane", "bicycle", "bird", "boat",
            "bottle", "bus", "car", "cat", "chair", "cow", "diningtable",

@@ -174,7 +174,8 @@ class MaskDetector:
                     self.create_embeddings_blob()
                     self.extract_embeddings_detections()
                     self.perform_classification()
-                    if self.name == "without_mask" and self.probability > 0.99:
+                    print("Probability = {}".format(self.probability))
+                    if self.name == "without_mask" and self.probability >= 0.97:
                         self.play_audio()
                     self.create_frame_icons()
                     cv2.rectangle(self.frame, (self.startX, self.startY), (self.endX, self.endY),

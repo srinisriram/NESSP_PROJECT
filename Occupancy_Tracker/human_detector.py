@@ -201,4 +201,4 @@ if __name__ == '__main__':
     send_rcv_inst = SendReceiveMessages()
     send_rcv_inst.perform_job()
     HumanDetector.perform_job(send_receive_message_instance=send_rcv_inst,
-                              preferable_target=cv2.dnn.DNN_TARGET_CPU)
+                              preferable_target=cv2.dnn.DNN_TARGET_MYRIAD)
