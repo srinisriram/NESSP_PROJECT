@@ -9,6 +9,9 @@ import os
 import threading
 import simpleaudio as sa
 
+camIndex = 1
+minConfidence = 0.97
+
 ap = argparse.ArgumentParser()
 ap.add_argument("-d", "--detector", type=str, default="face_detection_model",
                 help="path to OpenCV's deep learning face detector")
@@ -41,18 +44,11 @@ recognizer = pickle.loads(open(args["recognizer"], "rb").read())
 le = pickle.loads(open(args["le"], "rb").read())
 
 print("[INFO] starting video stream...")
-vs = VideoStream(src=1).start()
+vs = VideoStream(src=camIndex).start()
 time.sleep(2.0)
-
-#filename = 'look.wav'
-#wave_obj = sa.WaveObject.from_wave_file(filename)
-#arr = []
 
 filename1 = 'speech1.wav'
 wave_obj1 = sa.WaveObject.from_wave_file(filename1)
-
-#filename2 = 'good.wav'
-#wave_obj2 = sa.WaveObject.from_wave_file(filename2)
 
 human_detected = False
 playSound = False
@@ -61,49 +57,6 @@ fail_safe = []
 mask_play = False
 
 totalFrames = 0
-i = 0
-
-
-def thread_for_detecting_humans():
-    global CLASSES
-    global COLORS
-    global net
-    global vs
-    global human_detected
-    global mask_play
-    while True:
-        frame = vs.read()
-        frame = imutils.resize(frame, width=320)
-
-        (h, w) = frame.shape[:2]
-        blob = cv2.dnn.blobFromImage(cv2.resize(frame, (300, 300)), 0.007843, (300, 300), 127.5)
-
-        net.setInput(blob)
-        detections = net.forward()
-
-        # print("Face_Detected: {}".format(face_detected))
-        for i in np.arange(0, detections.shape[2]):
-            confidence = detections[0, 0, i, 2]
-            # print(confidence)
-            if confidence > 0.7:
-                idx = int(detections[0, 0, i, 1])
-                label = round(idx)
-
-                if (label == 15):
-                    print("I detected a human. Please wait for mask detection")
-                    # time.sleep(1)
-                    # sa.stop_all()
-                    # play_obj = wave_obj.play()
-                    # play_obj.wait_done()
-                    # time.sleep(2)
-                    human_detected = True
-                else:
-                    human_detected = False
-        cv2.imshow("Human Detection", frame)
-        key = cv2.waitKey(1) & 0xFF
-
-
-arr1 = []
 
 
 def thread_for_maskDetection():
@@ -113,7 +66,6 @@ def thread_for_maskDetection():
     global vs
     global mask_play
     global totalFrames
-    global i
     global playSound
     while True:
         # grab the frame from the threaded video stream
@@ -176,9 +128,9 @@ def thread_for_maskDetection():
                 proba = preds[j]
                 name = le.classes_[j]
                 print("Proba: ", proba)
-                if proba > 0.97 and name == "without_mask":
+                if proba > minConfidence and name == "without_mask":
                     playSound = True
-         
+
                 COLORS = [(0, 0, 255), (0, 255, 0)]
                 # draw the bounding box of the face along with the
                 # associated probability
@@ -207,15 +159,11 @@ def thread_for_playing_sound():
 
 
 if __name__ == "__main__":
-    # thread_for_detecting_humans()
-    # t1 = threading.Thread(target=thread_for_detecting_humans)
-    t2 = threading.Thread(target=thread_for_maskDetection)
-    t3 = threading.Thread(target=thread_for_playing_sound)
+    t1 = threading.Thread(target=thread_for_maskDetection)
+    t2 = threading.Thread(target=thread_for_playing_sound)
 
-    # t1.start()
+    t1.start()
     t2.start()
-    t3.start()
 
-    # t1.join()
+    t1.join()
     t2.join()
-    t3.join()
