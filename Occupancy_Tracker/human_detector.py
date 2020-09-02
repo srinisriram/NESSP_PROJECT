@@ -194,7 +194,7 @@ class HumanDetector(metaclass=Singleton):
 
     def clean_up(self):
         self.__perform_human_detection = False
-        self.send_receive_message_instance.run_program = False
+        self.send_receive_message_instance.cleanup()
         # stop the timer and display FPS information
         self.fps.stop()
         Logger.logger().debug("elapsed time: {:.2f}".format(self.fps.elapsed()))
@@ -212,7 +212,7 @@ class HumanDetector(metaclass=Singleton):
             self.video_stream.release()
         else:
             self.video_stream.stop()
-        time.sleep(5)
+        time.sleep(2)
 
     def thread_for_face_tracker(self):
         return_value = True

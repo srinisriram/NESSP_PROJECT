@@ -1,11 +1,11 @@
 # This file implements the logic to send / receive TCP/IP messages from/to peer IP address.
 
 import socket
+import threading
 import time
 from Occupancy_Tracker.constants import MAX_OCCUPANCY, SERVER_PORT, MAX_NUMBER_OF_RCV_BYTES
-from Occupancy_Tracker.play_audio import PlayAudio
-import threading
 from Occupancy_Tracker.logger import Logger
+from Occupancy_Tracker.play_audio import PlayAudio
 
 
 class SendReceiveMessages:
@@ -14,7 +14,20 @@ class SendReceiveMessages:
     """
     run_program = True
 
-    def perform_job(self, peer_ip_address='', peer_port=SERVER_PORT+1, local_ip_address='', local_port=SERVER_PORT):
+    def cleanup(self):
+        """
+        This method terminates all threads.
+        :return:
+        """
+        SendReceiveMessages.run_program = False
+        if self.thread_for_receiving_face_detected_by_peer:
+            self.thread_for_receiving_face_detected_by_peer.join()
+        if self.thread_for_transmitting_face_detected_locally:
+            self.thread_for_transmitting_face_detected_locally.join()
+        if self.thread__for_comparing_local_face_detected_and_global_face_detected:
+            self.thread__for_comparing_local_face_detected_and_global_face_detected.join()
+
+    def perform_job(self, peer_ip_address='', peer_port=SERVER_PORT + 1, local_ip_address='', local_port=SERVER_PORT):
         """
         This method performs Send receive face detection count between two raspberry PI's.
         :param local_port: int
@@ -23,42 +36,53 @@ class SendReceiveMessages:
         :param peer_ip_address: Peer IP address.
         :return:
         """
-        t1 = threading.Thread(target=self.method_for_receiving_face_detected_by_peer,
-                               args=(local_ip_address, local_port))
-        t2 = threading.Thread(target=self.method_for_transmitting_face_detected_locally,
-                               args=(peer_ip_address, peer_port))
-        t3 = threading.Thread(target=self.method_for_comparing_local_face_detected_and_global_face_detected)
+        self.thread_for_receiving_face_detected_by_peer = threading.Thread(
+            target=self.method_for_receiving_face_detected_by_peer,
+            args=(local_ip_address, local_port))
+        self.thread_for_transmitting_face_detected_locally = threading.Thread(
+            target=self.method_for_transmitting_face_detected_locally,
+            args=(peer_ip_address, peer_port))
+        self.thread__for_comparing_local_face_detected_and_global_face_detected = threading.Thread(
+            target=self.method_for_comparing_local_face_detected_and_global_face_detected)
         # starting thread 1
-        t1.start()
-        # starting thread 1
-        t2.start()
-        # starting thread 1
-        t3.start()
+        self.thread_for_receiving_face_detected_by_peer.start()
+        # starting thread 2
+        self.thread_for_transmitting_face_detected_locally.start()
+        # starting thread 3
+        self.thread__for_comparing_local_face_detected_and_global_face_detected.start()
 
     def __init__(self):
         self.__total_faces_detected_locally = 0
         self.__total_faces_detected_by_peer = 0
+        self.thread_for_receiving_face_detected_by_peer = None
+        self.thread_for_transmitting_face_detected_locally = None
+        self.thread__for_comparing_local_face_detected_and_global_face_detected = None
 
     def method_for_receiving_face_detected_by_peer(self, local_ip_address='', local_port=SERVER_PORT):
         """
         This method is used for receiving the face count detected by peer.
         :return:
         """
-        Logger.logger().info("Running Thread 2...")
+        Logger.logger().info("Running method_for_receiving_face_detected_by_peer...")
         # Initialize a TCP server socket using SOCK_STREAM
         # Bind the socket to the port
         server_address = (local_ip_address, local_port)
 
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            Logger.logger().info('Server Thread2: starting up on {} port {}'.format(*server_address))
+            Logger.logger().info('Server method_for_receiving_face_detected_by_peer: starting up on {} port {}'.format(
+                *server_address))
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             s.bind(server_address)
             s.listen(1)
-            Logger.logger().info('Server {} Thread2: Waiting for a connection'.format(server_address))
+            s.setblocking(flag=False)
+            s.settimeout(value=5.0)
+            Logger.logger().info('Server {} method_for_receiving_face_detected_by_peer: Waiting for a '
+                                 'connection'.format(server_address))
             conn, addr = s.accept()
             with conn:
                 Logger.logger().info('Server {}: received connection from peer {}.'.format(server_address, addr))
                 while SendReceiveMessages.run_program:
+                    Logger.logger().info("Run program is set to True.")
                     data = conn.recv(MAX_NUMBER_OF_RCV_BYTES)
                     if data:
                         Logger.logger().debug('Server {}: received {} from peer {}.'.format(server_address, data, addr))
@@ -67,7 +91,7 @@ class SendReceiveMessages:
                         Logger.logger().debug("Server {}: total_faces_detected_by_peer = {}".format(
                             server_address, self.__total_faces_detected_by_peer))
                     else:
-                        Logger.logger().info("server Thread2: data is Null")
+                        Logger.logger().debug("server method_for_receiving_face_detected_by_peer: data is Null")
 
     def increment_face_detected_locally(self):
         """
@@ -100,15 +124,15 @@ class SendReceiveMessages:
         :param peer_port: str
         :return:
         """
-        Logger.logger().info("Client Running Thread 3...")
+        Logger.logger().info("Client Running Thread method_for_transmitting_face_detected_locally...")
         # Create a TCP/IP socket
         # Connect the socket to the port where the server is listening
         peer_server_address = (peer_ip_address, peer_port)
         successfully_connected_to_peer = False
         while SendReceiveMessages.run_program and not successfully_connected_to_peer:
             try:
-                Logger.logger().info('Client Thread3: connecting to {} port {}'.format(*peer_server_address))
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                     s.connect(peer_server_address)
                     successfully_connected_to_peer = True
                     self.__send_face_detected_count_via_socket(s, peer_server_address)
@@ -129,7 +153,8 @@ class SendReceiveMessages:
                 if self.__total_faces_detected_locally != curr_count:
                     # Send the count
                     Logger.logger().debug(
-                        "Client Thread3: Sending total_faces_detected_locally={} to peer ip={}, "
+                        "Client method_for_transmitting_face_detected_locally: Sending total_"
+                        "faces_detected_locally={} to peer ip={}, "
                         "port={}.".format(
                             self.__total_faces_detected_locally,
                             *peer_server_address))
@@ -137,7 +162,8 @@ class SendReceiveMessages:
                     curr_count = self.__total_faces_detected_locally
                     time.sleep(1)
             except:
-                Logger.logger().info('Client Thread3: Exception: closing client socket')
+                Logger.logger().info('Client method_for_transmitting_face_detected_locally: Exception: '
+                                     'closing client socket')
                 sock.close()
 
     def method_for_comparing_local_face_detected_and_global_face_detected(self):
@@ -146,14 +172,16 @@ class SendReceiveMessages:
         corresponding action.
         :return:
         """
+        Logger.logger().info("Running thread method_for_comparing_local_face_detected_and_global_face_detected...")
         while SendReceiveMessages.run_program:
             total_faces_detected = self.__total_faces_detected_locally + self.__total_faces_detected_by_peer
             Logger.logger().info("[INFO D 1]: {}".format(total_faces_detected))
             Logger.logger().info("[INFO L 2]: {}".format(self.__total_faces_detected_locally))
             Logger.logger().info("[INFO P 3]: {}".format(self.__total_faces_detected_by_peer))
             Logger.logger().info(
-                "Thread4: Compute total faces detected by both cameras: {}".format(total_faces_detected))
-            if total_faces_detected > MAX_OCCUPANCY:
+                "method_for_comparing_local_face_detected_and_global_face_detected: Compute total faces "
+                "detected by both cameras: {}".format(total_faces_detected))
+            if total_faces_detected >= MAX_OCCUPANCY:
                 Logger.logger().info("Please wait because the occupancy is greater than {}".format(MAX_OCCUPANCY))
                 PlayAudio.play_audio_file()
             time.sleep(5)

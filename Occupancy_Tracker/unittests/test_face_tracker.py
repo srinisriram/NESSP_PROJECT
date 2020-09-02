@@ -32,6 +32,7 @@ class TestFaceTracker(unittest.TestCase):
         human_centroid_dict = human_detector_inst.get_human_centroid_dict()
         self.assertEqual(len(human_centroid_dict), 1)
         self.assertEqual(human_centroid_dict[0].direction, Direction.ENTER)
+        self.assertEqual(human_detector_inst.send_receive_message_instance.get_face_detected_count_locally(), 1)
         human_detector_inst.clean_up()
         self.__cleanup()
 
@@ -48,6 +49,7 @@ class TestFaceTracker(unittest.TestCase):
         self.assertEqual(len(human_centroid_dict), 2)
         self.assertEqual(human_centroid_dict[0].direction, Direction.EXIT)
         self.assertEqual(human_centroid_dict[1].direction, Direction.EXIT)
+        self.assertEqual(human_detector_inst.send_receive_message_instance.get_face_detected_count_locally(), -2)
         human_detector_inst.clean_up()
         self.__cleanup()
 
@@ -65,6 +67,7 @@ class TestFaceTracker(unittest.TestCase):
         self.assertEqual(human_centroid_dict[0].direction, Direction.ENTER)
         self.assertEqual(human_centroid_dict[1].direction, Direction.ENTER)
         self.assertEqual(human_centroid_dict[1].direction, Direction.ENTER)
+        self.assertEqual(human_detector_inst.send_receive_message_instance.get_face_detected_count_locally(), 3)
         human_detector_inst.clean_up()
         self.__cleanup()
 

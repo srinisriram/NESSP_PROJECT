@@ -40,8 +40,8 @@ class TestSendReceiveMessages(unittest.TestCase):
                              raspberry_pi_instance_2.get_face_detected_count_locally())
         time.sleep(5)
         print("cleaning up...")
-        raspberry_pi_instance_1.run_program = False
-        raspberry_pi_instance_2.run_program = False
+        raspberry_pi_instance_1.cleanup()
+        raspberry_pi_instance_2.cleanup()
 
 
 if __name__ == '__main__':
