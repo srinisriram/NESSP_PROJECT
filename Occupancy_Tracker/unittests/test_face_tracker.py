@@ -1,11 +1,11 @@
 import unittest
 # from face_tracker import FaceTracker
-from human_detector import HumanDetector
-from send_receive_messages import SendReceiveMessages
-from logger import Logger
+from Occupancy_Tracker.human_detector import HumanDetector
+from Occupancy_Tracker.send_receive_messages import SendReceiveMessages
+from Occupancy_Tracker.logger import Logger
 import logging
 import os
-from constants import TEST_VIDEO_FILE_PATH_1, TEST_VIDEO_FILE_PATH_2
+from Occupancy_Tracker.constants import TEST_VIDEO_FILE_PATH_1, TEST_VIDEO_FILE_PATH_2, Direction
 import cv2
 
 
@@ -15,37 +15,58 @@ class TestFaceTracker(unittest.TestCase):
 
     :key
     """
+    def __cleanup(self):
+        for file in os.listdir(os.getcwd()):
+            if file.endswith('.jpg'):
+                os.remove(file)
 
-    def test_face_tracker_example_video_file1(self):
-        # Logger.set_log_level(logging.DEBUG)
-        video_file_path = os.path.join('/'.join(os.path.dirname(__file__).split('/')[:-1]), TEST_VIDEO_FILE_PATH_1)
-        Logger.logger().info("Trying to open {}.".format(video_file_path))
-        HumanDetector.send_receive_message_instance = SendReceiveMessages()
-        HumanDetector.send_receive_message_instance.perform_job()
-        HumanDetector.input_video_file_path = video_file_path
-        HumanDetector.preferable_target = cv2.dnn.DNN_TARGET_CPU
-        # FaceTracker.thread_for_capturing_face(video_file_path, preferable_target=cv2.dnn.DNN_TARGET_CPU)
-        HumanDetector().thread_for_face_tracker()
+    def test_one_person_entering(self):
+        """
+        This method validates if occupancy detector can actually detect one person entering the premises.
+        :return:
+        """
+        human_detector_inst = HumanDetector(
+            find_humans_from_video_file_name='videos/one_person_entering.mp4',
+            use_pi_camera=False, open_display=False)
+        self.assertEqual(human_detector_inst.perform_job(), None)
+        human_centroid_dict = human_detector_inst.get_human_centroid_dict()
+        self.assertEqual(len(human_centroid_dict), 1)
+        self.assertEqual(human_centroid_dict[0].direction, Direction.ENTER)
+        human_detector_inst.clean_up()
+        self.__cleanup()
 
-    def test_face_tracker_example_video_file2(self):
-        # Logger.set_log_level(logging.DEBUG)
-        video_file_path = os.path.join('/'.join(os.path.dirname(__file__).split('/')[:-1]), TEST_VIDEO_FILE_PATH_2)
-        Logger.logger().info("Trying to open {}.".format(video_file_path))
-        HumanDetector.send_receive_message_instance = SendReceiveMessages()
-        HumanDetector.send_receive_message_instance.perform_job()
-        HumanDetector.input_video_file_path = video_file_path
-        HumanDetector.preferable_target = cv2.dnn.DNN_TARGET_CPU
-        # FaceTracker.thread_for_capturing_face(video_file_path, preferable_target=cv2.dnn.DNN_TARGET_CPU)
-        HumanDetector().thread_for_face_tracker()
+    def test_two_persons_exiting(self):
+        """
+        This method validates if occupancy detector can actually detect two persons exiting the premises.
+        :return:
+        """
+        human_detector_inst = HumanDetector(
+            find_humans_from_video_file_name='videos/two_persons_exiting.mp4',
+            use_pi_camera=False, open_display=False)
+        self.assertEqual(human_detector_inst.perform_job(), None)
+        human_centroid_dict = human_detector_inst.get_human_centroid_dict()
+        self.assertEqual(len(human_centroid_dict), 2)
+        self.assertEqual(human_centroid_dict[0].direction, Direction.EXIT)
+        self.assertEqual(human_centroid_dict[1].direction, Direction.EXIT)
+        human_detector_inst.clean_up()
+        self.__cleanup()
 
-    def test_face_tracker_locally_on_mac(self):
-        # Logger.set_log_level(logging.DEBUG)
-        video_file_path = os.path.join('/'.join(os.path.dirname(__file__).split('/')[:-1]), TEST_VIDEO_FILE_PATH)
-        Logger.logger().info("Trying to open {}.".format(video_file_path))
-        HumanDetector.send_receive_message_instance = SendReceiveMessages()
-        HumanDetector.preferable_target = cv2.dnn.DNN_TARGET_CPU
-        # FaceTracker.thread_for_capturing_face(video_file_path, preferable_target=cv2.dnn.DNN_TARGET_CPU)
-        HumanDetector().thread_for_face_tracker()
+    def test_three_persons_entering(self):
+        """
+        This method validates if occupancy detector can actually detect three persons entering the premises.
+        :return:
+        """
+        human_detector_inst = HumanDetector(
+            find_humans_from_video_file_name='videos/3_persons_entering.mp4',
+            use_pi_camera=False, open_display=False)
+        self.assertEqual(human_detector_inst.perform_job(), None)
+        human_centroid_dict = human_detector_inst.get_human_centroid_dict()
+        self.assertEqual(len(human_centroid_dict), 3)
+        self.assertEqual(human_centroid_dict[0].direction, Direction.ENTER)
+        self.assertEqual(human_centroid_dict[1].direction, Direction.ENTER)
+        self.assertEqual(human_centroid_dict[1].direction, Direction.ENTER)
+        human_detector_inst.clean_up()
+        self.__cleanup()
 
 
 if __name__ == '__main__':

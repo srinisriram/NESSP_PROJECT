@@ -1,5 +1,5 @@
 # This file implements logic to play a speech audio.
-from constants import SPEECH_FILENAME
+from Occupancy_Tracker.constants import SPEECH_FILENAME
 import subprocess
 import os
 from logger import Logger

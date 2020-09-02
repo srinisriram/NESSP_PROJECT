@@ -2,10 +2,10 @@
 
 import socket
 import time
-from constants import MAX_OCCUPANCY, SERVER_PORT, MAX_NUMBER_OF_RCV_BYTES
-from play_audio import PlayAudio
+from Occupancy_Tracker.constants import MAX_OCCUPANCY, SERVER_PORT, MAX_NUMBER_OF_RCV_BYTES
+from Occupancy_Tracker.play_audio import PlayAudio
 import threading
-from logger import Logger
+from Occupancy_Tracker.logger import Logger
 
 
 class SendReceiveMessages:
@@ -105,7 +105,7 @@ class SendReceiveMessages:
         # Connect the socket to the port where the server is listening
         peer_server_address = (peer_ip_address, peer_port)
         successfully_connected_to_peer = False
-        while not successfully_connected_to_peer:
+        while SendReceiveMessages.run_program and not successfully_connected_to_peer:
             try:
                 Logger.logger().info('Client Thread3: connecting to {} port {}'.format(*peer_server_address))
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:

@@ -1,12 +1,12 @@
 # This file implements the code for detecting and counting humans.
 import argparse
-from constants import SERVER_PORT
+from Occupancy_Tracker.constants import SERVER_PORT
 # from face_tracker import FaceTracker
-from human_detector import HumanDetector
-from send_receive_messages import SendReceiveMessages
+from Occupancy_Tracker.human_detector import HumanDetector
+from Occupancy_Tracker.send_receive_messages import SendReceiveMessages
 import time
 import logging
-from logger import Logger
+from Occupancy_Tracker.logger import Logger
 
 
 class OccupancyDetector:

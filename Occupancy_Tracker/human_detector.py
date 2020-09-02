@@ -1,36 +1,38 @@
 # This file implements the algorithm for tracking human face.
 # !/usr/bin/env python3
+import argparse
+import logging
 import os
+import threading
 import time
 from datetime import datetime
-import argparse
-import dlib
-import imutils
-import numpy as np
+
 import cv2
-import logging
+import imutils
+from Occupancy_Tracker.centroid_object_creator import CentroidObjectCreator
+# import the necessary packages
+from Occupancy_Tracker.constants import PROTO_TEXT_FILE, MODEL_NAME, FRAME_WIDTH_IN_PIXELS, VIDEO_DEV_ID, \
+    SERVER_PORT
+from Occupancy_Tracker.human_tracker_handler import HumanTrackerHandler
+from Occupancy_Tracker.human_validator import HumanValidator
+from Occupancy_Tracker.logger import Logger
+from Occupancy_Tracker.send_receive_messages import SendReceiveMessages
 from imutils.video import FPS
 from imutils.video import VideoStream
-from human_validator import HumanValidator
-from human_tracker_handler import HumanTrackerHandler
-from centroid_object_creator import CentroidObjectCreator
-from send_receive_messages import SendReceiveMessages
-import threading
-
-# import the necessary packages
-from constants import PROTO_TEXT_FILE, MODEL_NAME, FRAME_WIDTH_IN_PIXELS, OPEN_DISPLAY, VIDEO_DEV_ID, \
-    USE_PI_CAMERA, SERVER_PORT
-from logger import Logger
 
 
-class HumanDetector:
-    run_program = True
+class Singleton(type):
+    _instances = {}
 
-    send_receive_message_instance = None
-    input_video_file_path = None
-    preferable_target = None
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
 
-    def __init__(self):
+
+class HumanDetector(metaclass=Singleton):
+    def __init__(self, find_humans_from_video_file_name=None,
+                 use_pi_camera=True, open_display=True):
         # initialize the frame dimensions (we'll set them as soon as we read
         # the first frame from the video)
         self.H = None
@@ -42,6 +44,12 @@ class HumanDetector:
         self.rgb = None
         self.meter_per_pixel = None
         self.args = None
+        self.find_humans_from_video_file_name = find_humans_from_video_file_name
+        self.use_pi_camera = use_pi_camera
+        self.open_display = open_display
+        self.__perform_human_detection = True
+        self.send_receive_message_instance = SendReceiveMessages()
+        self.send_receive_message_instance.perform_job()
 
         # Load Model
         self.load_model()
@@ -53,46 +61,62 @@ class HumanDetector:
         self.centroid_object_creator = CentroidObjectCreator()
 
     @classmethod
-    def perform_job(cls, send_receive_message_instance, video_file_path=None,
-                    preferable_target=cv2.dnn.DNN_TARGET_MYRIAD):
+    def perform_job(cls):
         """
         This method performs the job expected out from this class.
-        :param video_file_path: path.
-        :param send_receive_message_instance: instance
         :return:
         """
-        HumanDetector.send_receive_message_instance = send_receive_message_instance
-        HumanDetector.input_video_file_path = video_file_path
-        HumanDetector.preferable_target = preferable_target
-
         t1 = threading.Thread(target=HumanDetector().thread_for_face_tracker)
         # starting thread 1
         t1.start()
+        return t1.join()
+
+    def get_human_centroid_dict(self):
+        """
+        This is used for unit test purpose only.
+        :return:
+        """
+        return HumanTrackerHandler.human_tracking_dict
 
     def load_model(self):
         """
         Load our serialized model from disk
         """
-        Logger.logger().debug("Loading model name:{}, proto_text:{}.".format(MODEL_NAME, PROTO_TEXT_FILE))
+        Logger.logger().info("Loading model name:{}, proto_text:{}.".format(MODEL_NAME, PROTO_TEXT_FILE))
         self.net = cv2.dnn.readNetFromCaffe(os.path.join(
             os.path.dirname(os.path.realpath(__file__)),
             PROTO_TEXT_FILE),
             os.path.join(
                 os.path.dirname(os.path.realpath(__file__)),
                 MODEL_NAME))
-        self.net.setPreferableTarget(HumanDetector.preferable_target)
+
+        if self.use_pi_camera:
+            # Set the target to the MOVIDIUS NCS stick connected via USB
+            # Prerequisite: https://docs.openvinotoolkit.org/latest/_docs_install_guides_installing_openvino_raspbian.html
+            Logger.logger().info("Setting MOVIDIUS NCS stick connected via USB as the target to run the model.")
+            self.net.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
+        else:
+            Logger.logger().info("Setting target to CPU.")
+            self.net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
 
     def initialize_camera(self):
         """
         Initialize the video stream and allow the camera sensor to warmup.
         """
-        if HumanDetector.input_video_file_path:
-            Logger.logger().debug("setting the video file path ={} as input to the video capture.".format(
-                HumanDetector.input_video_file_path))
-            self.video_stream = cv2.VideoCapture(HumanDetector.input_video_file_path)
-        elif USE_PI_CAMERA:
-            Logger.logger().debug("Setting video capture device to PI CAMERA.")
-            self.video_stream = VideoStream(0).start()
+        if self.find_humans_from_video_file_name:
+            self.find_humans_from_video_file_name = \
+                os.path.join(os.path.dirname(__file__),
+                             self.find_humans_from_video_file_name)
+            Logger.logger().info("Reading the input video file {}.".format(self.find_humans_from_video_file_name))
+
+            self.video_stream = cv2.VideoCapture(self.find_humans_from_video_file_name)
+            if not self.video_stream:
+                Logger.logger().error("cv2.VideoCapture() returned None.")
+                raise ValueError
+            # self.video_stream.set(cv2.CAP_PROP_FPS, int(10))
+        elif self.use_pi_camera:
+            Logger.logger().info("Warming up Raspberry PI camera connected via the PCB slot.")
+            self.video_stream = VideoStream(usePiCamera=True).start()
         else:
             Logger.logger().debug("Setting video capture device to {}.".format(VIDEO_DEV_ID))
             self.video_stream = VideoStream(src=VIDEO_DEV_ID).start()
@@ -103,9 +127,12 @@ class HumanDetector:
         1. Grab the next frame from the stream.
         2. store the current timestamp, and store the new date.
         """
-        if HumanDetector.input_video_file_path:
+        if self.find_humans_from_video_file_name:
             if self.video_stream.isOpened():
-                _, self.frame = self.video_stream.read()
+                ret, self.frame = self.video_stream.read()
+            else:
+                Logger.logger().info("Unable to open video stream...")
+                raise ValueError
         else:
             self.frame = self.video_stream.read()
         if self.frame is None:
@@ -114,6 +141,10 @@ class HumanDetector:
         self.current_time_stamp = datetime.now()
         # resize the frame
         self.frame = imutils.resize(self.frame, width=FRAME_WIDTH_IN_PIXELS)
+        # width = FRAME_WIDTH_IN_PIXELS
+        # height = self.frame.shape[0] # keep original height
+        # dim = (width, height)
+        # self.frame = cv2.resize(self.frame, dim, interpolation = cv2.INTER_AREA)
         self.rgb = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)
 
     def set_frame_dimensions(self):
@@ -123,13 +154,14 @@ class HumanDetector:
         # if the frame dimensions are empty, set them
         if not self.W or not self.H:
             (self.H, self.W) = self.frame.shape[:2]
-            self.meter_per_pixel = 1 / self.W
 
     def loop_over_streams(self):
-        while HumanDetector.run_program:
+        while self.__perform_human_detection:
             self.grab_next_frame()
             # check if the frame is None, if so, break out of the loop
             if self.frame is None:
+                if self.find_humans_from_video_file_name:
+                    self.__perform_human_detection = False
                 break
             self.set_frame_dimensions()
 
@@ -143,13 +175,13 @@ class HumanDetector:
                                           .format(speed_tracked_object.direction,
                                                   objectID))
                 HumanValidator.validate_column_movement(speed_tracked_object, self.current_time_stamp, self.frame,
-                                                        objectID, HumanDetector.send_receive_message_instance)
+                                                        objectID, self.send_receive_message_instance)
 
-            HumanTrackerHandler.compute_direction_for_dangling_object_ids(HumanDetector.send_receive_message_instance)
+            HumanTrackerHandler.compute_direction_for_dangling_object_ids(self.send_receive_message_instance)
 
             # if the *display* flag is set, then display the current frame
             # to the screen and record if a user presses a key
-            if OPEN_DISPLAY:
+            if self.open_display:
                 cv2.imshow("Human_detector_frame", self.frame)
                 key = cv2.waitKey(1) & 0xFF
 
@@ -161,6 +193,8 @@ class HumanDetector:
             self.fps.update()
 
     def clean_up(self):
+        self.__perform_human_detection = False
+        self.send_receive_message_instance.run_program = False
         # stop the timer and display FPS information
         self.fps.stop()
         Logger.logger().debug("elapsed time: {:.2f}".format(self.fps.elapsed()))
@@ -174,19 +208,23 @@ class HumanDetector:
 
         # clean up
         Logger.logger().debug("cleaning up...")
-        if HumanDetector.input_video_file_path:
+        if self.find_humans_from_video_file_name:
             self.video_stream.release()
         else:
             self.video_stream.stop()
+        time.sleep(5)
 
     def thread_for_face_tracker(self):
-        while HumanDetector.run_program:
+        return_value = True
+        while self.__perform_human_detection:
             try:
                 self.loop_over_streams()
-            except ValueError:
-                self.clean_up()
-                time.sleep(10)
-        self.clean_up()
+            except Exception as e:
+                Logger.logger().error("Caught an exception while looping over streams {}, rebooting....".format(
+                    type(e).__name__ + ': ' + str(e)))
+                return_value = False
+                os.system("sudo reboot")
+        return return_value
 
 
 if __name__ == '__main__':
@@ -198,7 +236,5 @@ if __name__ == '__main__':
     args = parser.parse_args()
     if args.debug:
         Logger.set_log_level(logging.DEBUG)
-    send_rcv_inst = SendReceiveMessages()
-    send_rcv_inst.perform_job()
-    HumanDetector.perform_job(send_receive_message_instance=send_rcv_inst,
-                              preferable_target=cv2.dnn.DNN_TARGET_CPU)
+    human_decorator = SingletonDecorator(HumanDetector)
+    human_decorator().perform_job()
