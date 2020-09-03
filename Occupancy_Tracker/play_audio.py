@@ -2,7 +2,7 @@
 from Occupancy_Tracker.constants import SPEECH_FILENAME
 import subprocess
 import os
-from logger import Logger
+from Occupancy_Tracker.logger import Logger
 
 
 class PlayAudio:
