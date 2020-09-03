@@ -6,8 +6,8 @@ import time
 import cv2
 import imutils
 import numpy as np
-from play_audioMask import PlayAudio
-from constants import prototxt_path, model_path, embedder_path, recognizer_path, labels_path, COLORS, \
+from Mask_Detector.play_audioMask import PlayAudio
+from Mask_Detector.constants import prototxt_path, model_path, embedder_path, recognizer_path, labels_path, COLORS, \
     LABELS, frame_width_in_pixels, MIN_CONFIDENCE, OPEN_DISPLAY
 from imutils.video import VideoStream
 
@@ -154,7 +154,10 @@ class MaskDetector:
         self.colorIndex = LABELS.index(self.name)
 
     def play_audio(self):
-        PlayAudio.play_audio_file()
+        SoundThread = threading.Thread(target=PlayAudio.play_audio_file)
+        print("[INFO]: Starting Sound Thread")
+        SoundThread.start()
+        print("[INFO]: Stopping Sound Thread")
 
 
     def loop_over_frames(self):
