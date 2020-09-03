@@ -16,7 +16,7 @@ class MaskDetector:
     run_program = True
     input_video_file_path = None
     #input_video_file_path = '/Users/srinivassriram/PycharmProjects/NESSP_PROJECT/Mask_Detector/videos/rajesh_uncle.mp4'
-    preferable_target = None
+    preferable_target = cv2.dnn.DNN_TARGET_CPU
     num_of_without_mask = 0
 
     def __init__(self):
