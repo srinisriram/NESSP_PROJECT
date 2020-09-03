@@ -7,6 +7,7 @@ import logging
 import os
 from Occupancy_Tracker.constants import TEST_VIDEO_FILE_PATH_1, TEST_VIDEO_FILE_PATH_2, Direction
 import cv2
+import time
 
 
 class TestFaceTracker(unittest.TestCase):
@@ -32,7 +33,7 @@ class TestFaceTracker(unittest.TestCase):
         human_centroid_dict = human_detector_inst.get_human_centroid_dict()
         self.assertEqual(len(human_centroid_dict), 1)
         self.assertEqual(human_centroid_dict[0].direction, Direction.ENTER)
-        self.assertEqual(human_detector_inst.send_receive_message_instance.get_face_detected_count_locally(), 1)
+        self.assertEqual(SendReceiveMessages().get_face_detected_count_locally(), 1)
         human_detector_inst.clean_up()
         self.__cleanup()
 
@@ -49,7 +50,7 @@ class TestFaceTracker(unittest.TestCase):
         self.assertEqual(len(human_centroid_dict), 2)
         self.assertEqual(human_centroid_dict[0].direction, Direction.EXIT)
         self.assertEqual(human_centroid_dict[1].direction, Direction.EXIT)
-        self.assertEqual(human_detector_inst.send_receive_message_instance.get_face_detected_count_locally(), -2)
+        self.assertEqual(SendReceiveMessages().get_face_detected_count_locally(), -2)
         human_detector_inst.clean_up()
         self.__cleanup()
 
@@ -66,8 +67,46 @@ class TestFaceTracker(unittest.TestCase):
         self.assertEqual(len(human_centroid_dict), 3)
         self.assertEqual(human_centroid_dict[0].direction, Direction.ENTER)
         self.assertEqual(human_centroid_dict[1].direction, Direction.ENTER)
+        self.assertEqual(human_centroid_dict[2].direction, Direction.ENTER)
+        self.assertEqual(SendReceiveMessages().get_face_detected_count_locally(), 3)
+        human_detector_inst.clean_up()
+        self.__cleanup()
+
+    def test_four_persons_entering(self):
+        """
+        This method validates if occupancy detector can actually detect four persons entering the premises.
+        :return:
+        """
+        human_detector_inst = HumanDetector(
+            find_humans_from_video_file_name='videos/4_persons_entering.mov',
+            use_pi_camera=False, open_display=False)
+        self.assertEqual(human_detector_inst.perform_job(), None)
+        human_centroid_dict = human_detector_inst.get_human_centroid_dict()
+        self.assertEqual(len(human_centroid_dict), 4)
+        self.assertEqual(human_centroid_dict[0].direction, Direction.ENTER)
         self.assertEqual(human_centroid_dict[1].direction, Direction.ENTER)
-        self.assertEqual(human_detector_inst.send_receive_message_instance.get_face_detected_count_locally(), 3)
+        self.assertEqual(human_centroid_dict[2].direction, Direction.ENTER)
+        self.assertEqual(human_centroid_dict[3].direction, Direction.ENTER)
+        self.assertEqual(SendReceiveMessages().get_face_detected_count_locally(), 4)
+        human_detector_inst.clean_up()
+        self.__cleanup()
+
+    def test_four_persons_exiting(self):
+        """
+        This method validates if occupancy detector can actually detect four persons exiting the premises.
+        :return:
+        """
+        human_detector_inst = HumanDetector(
+            find_humans_from_video_file_name='videos/4_persons_exiting.mov',
+            use_pi_camera=False, open_display=False)
+        self.assertEqual(human_detector_inst.perform_job(), None)
+        human_centroid_dict = human_detector_inst.get_human_centroid_dict()
+        self.assertEqual(len(human_centroid_dict), 5)
+        self.assertEqual(human_centroid_dict[0].direction, Direction.EXIT)
+        self.assertEqual(human_centroid_dict[1].direction, Direction.EXIT)
+        self.assertEqual(human_centroid_dict[2].direction, Direction.EXIT)
+        self.assertEqual(human_centroid_dict[3].direction, Direction.EXIT)
+        self.assertEqual(SendReceiveMessages().get_face_detected_count_locally(), -5)
         human_detector_inst.clean_up()
         self.__cleanup()
 

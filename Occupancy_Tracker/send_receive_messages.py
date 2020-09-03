@@ -6,9 +6,10 @@ import time
 from Occupancy_Tracker.constants import MAX_OCCUPANCY, SERVER_PORT, MAX_NUMBER_OF_RCV_BYTES
 from Occupancy_Tracker.logger import Logger
 from Occupancy_Tracker.play_audio import PlayAudio
+from Occupancy_Tracker.singleton_template import Singleton
 
 
-class SendReceiveMessages:
+class SendReceiveMessages(metaclass=Singleton):
     """
     This class is used for sending and receiving messages over TCP/IP socket from/to peer Ip address.
     """

@@ -12,22 +12,14 @@ import imutils
 from Occupancy_Tracker.centroid_object_creator import CentroidObjectCreator
 # import the necessary packages
 from Occupancy_Tracker.constants import PROTO_TEXT_FILE, MODEL_NAME, FRAME_WIDTH_IN_PIXELS, VIDEO_DEV_ID, \
-    SERVER_PORT
+    SERVER_PORT, TIMEOUT_FOR_TRACKER
 from Occupancy_Tracker.human_tracker_handler import HumanTrackerHandler
 from Occupancy_Tracker.human_validator import HumanValidator
 from Occupancy_Tracker.logger import Logger
 from Occupancy_Tracker.send_receive_messages import SendReceiveMessages
 from imutils.video import FPS
 from imutils.video import VideoStream
-
-
-class Singleton(type):
-    _instances = {}
-
-    def __call__(cls, *args, **kwargs):
-        if cls not in cls._instances:
-            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
-        return cls._instances[cls]
+from Occupancy_Tracker.singleton_template import Singleton
 
 
 class HumanDetector(metaclass=Singleton):
@@ -47,9 +39,9 @@ class HumanDetector(metaclass=Singleton):
         self.find_humans_from_video_file_name = find_humans_from_video_file_name
         self.use_pi_camera = use_pi_camera
         self.open_display = open_display
-        self.__perform_human_detection = True
-        self.send_receive_message_instance = SendReceiveMessages()
-        self.send_receive_message_instance.perform_job()
+        self.perform_human_detection = True
+
+        SendReceiveMessages().perform_job()
 
         # Load Model
         self.load_model()
@@ -156,28 +148,31 @@ class HumanDetector(metaclass=Singleton):
             (self.H, self.W) = self.frame.shape[:2]
 
     def loop_over_streams(self):
-        while self.__perform_human_detection:
+        while self.perform_human_detection:
             self.grab_next_frame()
             # check if the frame is None, if so, break out of the loop
             if self.frame is None:
                 if self.find_humans_from_video_file_name:
-                    self.__perform_human_detection = False
-                break
+                    for _ in range(TIMEOUT_FOR_TRACKER+1):
+                        HumanTrackerHandler.compute_direction_for_dangling_object_ids(keep_dict_items=True)
+                        time.sleep(1)
+                    self.perform_human_detection = False
+                    break
+                else:
+                    HumanTrackerHandler.compute_direction_for_dangling_object_ids()
+                    continue
             self.set_frame_dimensions()
 
             objects = self.centroid_object_creator.create_centroid_tracker_object(self.H, self.W, self.rgb, self.net,
                                                                                   self.frame)
             for speed_tracked_object, objectID, centroid in HumanTrackerHandler.yield_a_human_tracker_object(objects):
-                HumanTrackerHandler.update_column_index_movement(self.frame, speed_tracked_object, objectID, centroid,
-                                                                 self.current_time_stamp)
-                if speed_tracked_object.direction is not None:
-                    Logger.logger().debug("Computed direction = {} for objectID = {}, "
-                                          .format(speed_tracked_object.direction,
-                                                  objectID))
+                HumanTrackerHandler.record_movement(speed_tracked_object)
                 HumanValidator.validate_column_movement(speed_tracked_object, self.current_time_stamp, self.frame,
-                                                        objectID, self.send_receive_message_instance)
-
-            HumanTrackerHandler.compute_direction_for_dangling_object_ids(self.send_receive_message_instance)
+                                                        objectID)
+            if self.find_humans_from_video_file_name:
+                HumanTrackerHandler.compute_direction_for_dangling_object_ids(keep_dict_items=True)
+            else:
+                HumanTrackerHandler.compute_direction_for_dangling_object_ids()
 
             # if the *display* flag is set, then display the current frame
             # to the screen and record if a user presses a key
@@ -193,8 +188,8 @@ class HumanDetector(metaclass=Singleton):
             self.fps.update()
 
     def clean_up(self):
-        self.__perform_human_detection = False
-        self.send_receive_message_instance.cleanup()
+        self.perform_human_detection = False
+        SendReceiveMessages().cleanup()
         # stop the timer and display FPS information
         self.fps.stop()
         Logger.logger().debug("elapsed time: {:.2f}".format(self.fps.elapsed()))
@@ -216,7 +211,7 @@ class HumanDetector(metaclass=Singleton):
 
     def thread_for_face_tracker(self):
         return_value = True
-        while self.__perform_human_detection:
+        while self.perform_human_detection:
             try:
                 self.loop_over_streams()
             except Exception as e:

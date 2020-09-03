@@ -7,6 +7,7 @@ from imutils.io import TempFile
 from Occupancy_Tracker.email_sender import EmailSender
 from datetime import datetime
 from Occupancy_Tracker.logger import Logger
+from Occupancy_Tracker.send_receive_messages import SendReceiveMessages
 
 
 class HumanValidator:
@@ -36,7 +37,7 @@ class HumanValidator:
             cls.exit_log_file.write("Year,Month,Day,Time (in MPH),Speed\n")
 
     @classmethod
-    def validate_column_movement(cls, trackable_object, time_stamp, frame, objectID, send_receive_message_instance):
+    def validate_column_movement(cls, trackable_object, time_stamp, frame, objectID):
         # Initialize log file.
         if not cls.enter_log_file or not cls.exit_log_file:
             cls.initialize_log_file()
@@ -79,10 +80,10 @@ class HumanValidator:
                                                  day, time, repr(trackable_object.direction))
             if trackable_object.direction == Direction.ENTER:
                 cls.enter_log_file.write(info)
-                send_receive_message_instance.increment_face_detected_locally()
+                SendReceiveMessages().increment_face_detected_locally()
             elif trackable_object.direction == Direction.EXIT:
                 cls.exit_log_file.write(info)
-                send_receive_message_instance.decrement_face_detected_locally()
+                SendReceiveMessages().decrement_face_detected_locally()
 
             # set the object has logged
             trackable_object.logged = True

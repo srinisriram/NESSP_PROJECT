@@ -18,7 +18,7 @@ FRAME_WIDTH_IN_PIXELS = 400
 
 # Maximum consecutive frames a given object is allowed to be
 # marked as "disappeared" until we need to deregister the object from tracking.
-MAX_NUM_OF_CONSECUTIVE_FRAMES_FOR_ACTION = 30
+MAX_NUM_OF_CONSECUTIVE_FRAMES_FOR_ACTION = 50
 
 # Maximum distance between centroids to associate an object --
 # if the distance is larger than this maximum distance we'll
@@ -33,7 +33,7 @@ COLUMN_SAMPLE_POINTS_LIST = [60, 120, 180, 240]
 COLUMN = 1
 
 # minimum confidence
-MIN_CONFIDENCE = 0.5
+MIN_CONFIDENCE = 0.4
 
 CLASSES = ["background", "aeroplane", "bicycle", "bird", "boat",
            "bottle", "bus", "car", "cat", "chair", "cow", "diningtable",
@@ -47,7 +47,7 @@ VIDEO_DEV_ID = 0
 
 SEND_EMAIL = True
 
-TIMEOUT_FOR_TRACKER = 10
+TIMEOUT_FOR_TRACKER = 2
 
 DEMARCATION_LINE = 100
 

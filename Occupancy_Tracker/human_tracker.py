@@ -10,9 +10,6 @@ class HumanTracker:
         # initialize a lists to store the timestamp and
         # position of the object at various points
         self.timestamp_list = []
-        self.position_list = []
-        self.current_index = -1
-        self.empty_recorded_timestamp = None
 
         # initialize two booleans, (1) used to indicate if the
         # object's speed has already been estimated or not, and (2)
