@@ -1,5 +1,5 @@
 # This file implements logic to play a speech audio.
-from constants import sound_file
+from Mask_Detector.constants import sound_file
 import subprocess
 import os
 
