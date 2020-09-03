@@ -18,7 +18,9 @@ frame_width_in_pixels = 320
 
 OPEN_DISPLAY = True
 
-MIN_CONFIDENCE = 0.6
+MIN_CONFIDENCE = 0.8
+
+USE_VIDEO = True
 
 
 
