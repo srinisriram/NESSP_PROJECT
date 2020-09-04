@@ -110,7 +110,7 @@ class TestFaceTracker(unittest.TestCase):
         human_detector_inst.clean_up()
         self.__cleanup()
 
-    def test_horizontal_line_4_entering(self):
+    def test_horizontal_line_4_Exiting(self):
         """
         This method validates if occupancy detector can actually detect three persons entering the premises.
         :return:
@@ -129,6 +129,25 @@ class TestFaceTracker(unittest.TestCase):
         human_detector_inst.clean_up()
         self.__cleanup()
 
+    def test_horizontal_line_4_Entering(self):
+        """
+        This method validates if occupancy detector can actually detect four persons entering horizontally the premises.
+        :return:
+        """
+        human_detector_inst = HumanDetector(
+            find_humans_from_video_file_name='videos/TempleVideos/horizontal_line_4_Entering.mp4',
+            use_pi_camera=False, open_display=False)
+        self.assertEqual(human_detector_inst.perform_job(), None)
+        human_centroid_dict = human_detector_inst.get_human_centroid_dict()
+        self.assertEqual(len(human_centroid_dict), 4)
+        self.assertEqual(human_centroid_dict[0].direction, Direction.ENTER)
+        self.assertEqual(human_centroid_dict[1].direction, Direction.ENTER)
+        self.assertEqual(human_centroid_dict[2].direction, Direction.ENTER)
+        self.assertEqual(human_centroid_dict[3].direction, Direction.ENTER)
+        self.assertEqual(SendReceiveMessages().get_face_detected_count_locally(), 4)
+        human_detector_inst.clean_up()
+        self.__cleanup()
+
     def test_grouped_exit(self):
         """
         This method validates if occupancy detector can actually detect four persons grouped together exiting the premises.
@@ -136,7 +155,7 @@ class TestFaceTracker(unittest.TestCase):
         """
         human_detector_inst = HumanDetector(
             find_humans_from_video_file_name='videos/TempleVideos/grouped_Exit.mp4',
-            use_pi_camera=False, open_display=True)
+            use_pi_camera=False, open_display=False)
         self.assertEqual(human_detector_inst.perform_job(), None)
         human_centroid_dict = human_detector_inst.get_human_centroid_dict()
         self.assertEqual(len(human_centroid_dict), 4)
@@ -155,7 +174,7 @@ class TestFaceTracker(unittest.TestCase):
         """
         human_detector_inst = HumanDetector(
             find_humans_from_video_file_name='videos/TempleVideos/grouped_Enter.mp4',
-            use_pi_camera=False, open_display=True)
+            use_pi_camera=False, open_display=False)
         self.assertEqual(human_detector_inst.perform_job(), None)
         human_centroid_dict = human_detector_inst.get_human_centroid_dict()
         self.assertEqual(len(human_centroid_dict), 4)
