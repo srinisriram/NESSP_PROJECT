@@ -125,7 +125,7 @@ class TestFaceTracker(unittest.TestCase):
         self.assertEqual(human_centroid_dict[1].direction, Direction.EXIT)
         self.assertEqual(human_centroid_dict[2].direction, Direction.EXIT)
         self.assertEqual(human_centroid_dict[3].direction, Direction.EXIT)
-        self.assertEqual(human_detector_inst.send_receive_message_instance.get_face_detected_count_locally(), -4)
+        self.assertEqual(SendReceiveMessages().get_face_detected_count_locally(), -4)
         human_detector_inst.clean_up()
         self.__cleanup()
 
