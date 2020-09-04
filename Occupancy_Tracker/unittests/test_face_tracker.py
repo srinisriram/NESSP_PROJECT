@@ -276,5 +276,24 @@ class TestFaceTracker(unittest.TestCase):
         human_detector_inst.clean_up()
         self.__cleanup()
 
+    def test_two_by_two_cross_EnterExit(self):
+        """
+        This method validates if occupancy detector can actually detect 1 person exiting and the other 3 entering the premises.
+        :return:
+        """
+        human_detector_inst = HumanDetector(
+            find_humans_from_video_file_name='videos/TempleVideos/two_by_two_cross_EnterExit.mp4',
+            use_pi_camera=False, open_display=True)
+        self.assertEqual(human_detector_inst.perform_job(), None)
+        human_centroid_dict = human_detector_inst.get_human_centroid_dict()
+        self.assertEqual(len(human_centroid_dict), 4)
+        self.assertEqual(human_centroid_dict[0].direction, Direction.ENTER)
+        self.assertEqual(human_centroid_dict[1].direction, Direction.EXIT)
+        self.assertEqual(human_centroid_dict[2].direction, Direction.ENTER)
+        self.assertEqual(human_centroid_dict[3].direction, Direction.EXIT)
+        self.assertEqual(SendReceiveMessages().get_face_detected_count_locally(), 0)
+        human_detector_inst.clean_up()
+        self.__cleanup()
+
 if __name__ == '__main__':
     unittest.main()
