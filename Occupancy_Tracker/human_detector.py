@@ -231,5 +231,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
     if args.debug:
         Logger.set_log_level(logging.DEBUG)
-    human_decorator = SingletonDecorator(HumanDetector)
-    human_decorator().perform_job()
+    HumanDetector().perform_job()
