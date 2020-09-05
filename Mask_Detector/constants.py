@@ -10,7 +10,7 @@ labels_path = "labels.pickle"
 
 sound_file = "speech1.wav"
 
-COLORS = [(0, 0, 255), (0, 255, 0)]
+COLORS = [(0, 255, 0), (0, 0, 255)]
 
 LABELS = ["with_mask", "without_mask"]
 
@@ -18,9 +18,11 @@ frame_width_in_pixels = 320
 
 OPEN_DISPLAY = True
 
-MIN_CONFIDENCE = 0.8
+MIN_CONFIDENCE = 0.5
 
 USE_VIDEO = True
+
+MIN_CONFIDENCE_MASK = 0.70
 
 
 

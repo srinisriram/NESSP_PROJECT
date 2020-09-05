@@ -8,16 +8,15 @@ import imutils
 import numpy as np
 from Mask_Detector.play_audioMask import PlayAudio
 from Mask_Detector.constants import prototxt_path, model_path, embedder_path, recognizer_path, labels_path, COLORS, \
-    LABELS, frame_width_in_pixels, MIN_CONFIDENCE, OPEN_DISPLAY, USE_VIDEO
+    LABELS, frame_width_in_pixels, MIN_CONFIDENCE, OPEN_DISPLAY, USE_VIDEO, MIN_CONFIDENCE_MASK
 from imutils.video import VideoStream
 
 
 class MaskDetector:
     run_program = True
     input_video_file_path = None
-    #input_video_file_path = '/Users/srinivassriram/PycharmProjects/NESSP_PROJECT/Mask_Detector/videos/rajesh_uncle.mp4'
+    #input_video_file_path = '/Users/srinivassriram/PycharmProjects/NESSP_PROJECT/Mask_Detector/videos/one_by_one.mp4'
     preferable_target = cv2.dnn.DNN_TARGET_CPU
-    num_of_without_mask = 0
 
     def __init__(self):
         self.frame = None
@@ -49,19 +48,14 @@ class MaskDetector:
         self.le = None
         self.box = None
         self.j = None
+        self.AudioPlay = False
+        self.debug = False
 
         self.load_caffe_model()
         self.load_pytorch_model()
         self.load_pickle_recognizer()
 
         self.initialize_camera()
-
-    def get_no_mask_count(self):
-        """
-        This is used for unit test purpose only.
-        :return:
-        """
-        return MaskDetector.num_of_without_mask
 
     @classmethod
     def perform_job(cls, preferableTarget=cv2.dnn.DNN_TARGET_CPU):
@@ -113,12 +107,12 @@ class MaskDetector:
             self.frame = self.vs.read()
         else:
             _, self.frame = self.vs.read()
+            #self.frame = cv2.rotate(self.frame, cv2.ROTATE_180)
 
         if self.frame is None:
             return
 
-        #self.frame = cv2.rotate(self.frame, cv2.ROTATE_180)
-        #self.frame = imutils.resize(self.frame, width=frame_width_in_pixels)
+        self.frame = imutils.resize(self.frame, width=frame_width_in_pixels)
 
     def set_dimensions_for_face_blob(self):
         if not self.h or not self.w:
@@ -171,8 +165,12 @@ class MaskDetector:
     def play_audio(self):
         SoundThread = threading.Thread(target=PlayAudio.play_audio_file)
         print("[INFO]: Starting Sound Thread")
-        SoundThread.start()
-        print("[INFO]: Stopping Sound Thread")
+        if not self.AudioPlay:
+            self.AudioPlay = True
+            SoundThread.start()
+            time.sleep(3)
+            self.AudioPlay = False
+            print("[INFO]: Stopping Sound Thread")
 
     def loop_over_frames(self):
         while MaskDetector.run_program:
@@ -191,10 +189,11 @@ class MaskDetector:
                     self.create_embeddings_blob()
                     self.extract_embeddings_detections()
                     self.perform_classification()
-                    print("Label {} + Probability = {}".format(self.name, self.probability))
-                    if self.name == "without_mask" and self.probability >= 0.95:
+                    if self.debug:
+                        print("Label {} + Probability = {}".format(self.name, self.probability))
                         print("Confidence of face detection", self.confidence)
-                        MaskDetector.num_of_without_mask += 1
+                    if self.name == "without_mask" and self.probability >= MIN_CONFIDENCE_MASK:
+                        print("Person is not wearing a mask.")
                         self.play_audio()
                     self.create_frame_icons()
                     cv2.rectangle(self.frame, (self.startX, self.startY), (self.endX, self.endY),
