@@ -15,7 +15,6 @@ from imutils.video import VideoStream
 class MaskDetector:
     run_program = True
     input_video_file_path = None
-    #input_video_file_path = '/Users/srinivassriram/PycharmProjects/NESSP_PROJECT/Mask_Detector/videos/one_by_one.mp4'
     preferable_target = cv2.dnn.DNN_TARGET_CPU
 
     def __init__(self):
