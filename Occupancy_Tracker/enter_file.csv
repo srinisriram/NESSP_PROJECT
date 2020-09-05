@@ -287,8 +287,10 @@ Year,Month,Day,Time (in MPH),Speed
 2020,09,03,16:42:13,<Direction.ENTER: 1>
 2020,09,03,16:42:13,<Direction.ENTER: 1>
 2020,09,03,16:42:13,<Direction.ENTER: 1>
+2020,09,04,12:31:09,<Direction.ENTER: 1>
 2020,09,04,12:29:20,<Direction.ENTER: 1>
 2020,09,04,12:40:36,<Direction.ENTER: 1>
+2020,09,04,12:42:24,<Direction.ENTER: 1>
 2020,09,04,12:53:52,<Direction.ENTER: 1>
 2020,09,04,12:53:54,<Direction.ENTER: 1>
 2020,09,04,12:53:54,<Direction.ENTER: 1>
@@ -297,6 +299,9 @@ Year,Month,Day,Time (in MPH),Speed
 2020,09,04,13:21:17,<Direction.ENTER: 1>
 2020,09,04,13:21:17,<Direction.ENTER: 1>
 2020,09,04,13:21:18,<Direction.ENTER: 1>
+2020,09,04,13:27:12,<Direction.ENTER: 1>
+2020,09,04,13:27:12,<Direction.ENTER: 1>
+2020,09,04,13:27:13,<Direction.ENTER: 1>
 2020,09,05,09:53:08,<Direction.ENTER: 1>
 2020,09,05,09:53:53,<Direction.ENTER: 1>
 2020,09,05,09:53:55,<Direction.ENTER: 1>

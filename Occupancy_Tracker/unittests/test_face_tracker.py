@@ -492,6 +492,33 @@ class TestFaceTracker(unittest.TestCase):
         human_detector_inst.clean_up()
         self.__cleanup()
 
+    def test_occupancy_10(self):
+        """
+        This method validates if occupancy detector can actually correctly calculate the number of people entering the premises on a typical temple day.
+        :return:
+        """
+        human_detector_inst = HumanDetector(
+            find_humans_from_video_file_name='videos/occupancy_test_videos/occupancy10.mp4',
+            use_pi_camera=False, open_display=False)
+        self.assertEqual(human_detector_inst.perform_job(), None)
+        human_centroid_dict = human_detector_inst.get_human_centroid_dict()
+        self.assertEqual(len(human_centroid_dict), 12)
+        self.assertEqual(human_centroid_dict[0].direction, Direction.EXIT)
+        self.assertEqual(human_centroid_dict[1].direction, Direction.ENTER)
+        self.assertEqual(human_centroid_dict[2].direction, Direction.EXIT)
+        self.assertEqual(human_centroid_dict[3].direction, Direction.EXIT)
+        self.assertEqual(human_centroid_dict[4].direction, Direction.ENTER)
+        self.assertEqual(human_centroid_dict[5].direction, Direction.ENTER)
+        self.assertEqual(human_centroid_dict[6].direction, Direction.EXIT)
+        self.assertEqual(human_centroid_dict[7].direction, Direction.EXIT)
+        self.assertEqual(human_centroid_dict[8].direction, Direction.ENTER)
+        self.assertEqual(human_centroid_dict[9].direction, Direction.ENTER)
+        self.assertEqual(human_centroid_dict[10].direction, Direction.ENTER)
+        self.assertEqual(human_centroid_dict[11].direction, Direction.ENTER)
+        self.assertEqual(SendReceiveMessages().get_face_detected_count_locally(), 2)
+        human_detector_inst.clean_up()
+        self.__cleanup()
+
 
 if __name__ == '__main__':
     unittest.main()
