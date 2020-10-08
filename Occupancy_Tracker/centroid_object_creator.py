@@ -1,10 +1,10 @@
 
 import cv2
-from Occupancy_Tracker.constants import MIN_CONFIDENCE, CLASSES, MAX_NUM_OF_CONSECUTIVE_FRAMES_FOR_ACTION, MAX_DISTANCE_FROM_THE_OBJECT
-from Occupancy_Tracker.logger import Logger
+from constants import MIN_CONFIDENCE, CLASSES, MAX_NUM_OF_CONSECUTIVE_FRAMES_FOR_ACTION, MAX_DISTANCE_FROM_THE_OBJECT
+from logger import Logger
 import dlib
 import numpy as np
-from Occupancy_Tracker.centroid_tracker import CentroidTracker
+from centroid_tracker import CentroidTracker
 
 
 class CentroidObjectCreator:
