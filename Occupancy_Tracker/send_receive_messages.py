@@ -28,7 +28,7 @@ class SendReceiveMessages(metaclass=Singleton):
         if self.thread__for_comparing_local_face_detected_and_global_face_detected:
             self.thread__for_comparing_local_face_detected_and_global_face_detected.join()
 
-    def perform_job(self, peer_ip_address='', peer_port=SERVER_PORT + 1, local_ip_address='', local_port=SERVER_PORT):
+    def perform_job(self, peer_ip_address='', peer_port=SERVER_PORT, local_ip_address='0.0.0.0', local_port=SERVER_PORT):
         """
         This method performs Send receive face detection count between two raspberry PI's.
         :param local_port: int
@@ -59,7 +59,7 @@ class SendReceiveMessages(metaclass=Singleton):
         self.thread_for_transmitting_face_detected_locally = None
         self.thread__for_comparing_local_face_detected_and_global_face_detected = None
 
-    def method_for_receiving_face_detected_by_peer(self, local_ip_address='', local_port=SERVER_PORT):
+    def method_for_receiving_face_detected_by_peer(self, local_ip_address='0.0.0.0', local_port=SERVER_PORT):
         """
         This method is used for receiving the face count detected by peer.
         :return:
@@ -68,31 +68,35 @@ class SendReceiveMessages(metaclass=Singleton):
         # Initialize a TCP server socket using SOCK_STREAM
         # Bind the socket to the port
         server_address = (local_ip_address, local_port)
-
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        try:
             Logger.logger().info('Server method_for_receiving_face_detected_by_peer: starting up on {} port {}'.format(
                 *server_address))
-            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            s.bind(server_address)
-            s.listen(1)
-            s.setblocking(flag=False)
-            s.settimeout(value=5.0)
-            Logger.logger().info('Server {} method_for_receiving_face_detected_by_peer: Waiting for a '
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                s.bind(server_address)
+                s.listen(1)
+                s.setblocking(True)
+                s.settimeout(5.0)
+                Logger.logger().info('Server {} method_for_receiving_face_detected_by_peer: Waiting for a '
                                  'connection'.format(server_address))
-            conn, addr = s.accept()
-            with conn:
-                Logger.logger().info('Server {}: received connection from peer {}.'.format(server_address, addr))
-                while SendReceiveMessages.run_program:
-                    Logger.logger().info("Run program is set to True.")
-                    data = conn.recv(MAX_NUMBER_OF_RCV_BYTES)
-                    if data:
-                        Logger.logger().debug('Server {}: received {} from peer {}.'.format(server_address, data, addr))
-                        data = data.decode('utf-8')
-                        self.__total_faces_detected_by_peer = int(data)
-                        Logger.logger().debug("Server {}: total_faces_detected_by_peer = {}".format(
+                conn, addr = s.accept()
+                with conn:
+                    Logger.logger().info('Server {}: received connection from peer {}.'.format(server_address, addr))
+                    while SendReceiveMessages.run_program:
+                        Logger.logger().info("Run program is set to True.")
+                        data = conn.recv(MAX_NUMBER_OF_RCV_BYTES)
+                        if data:
+                            Logger.logger().debug('Server {}: received {} from peer {}.'.format(server_address, data, addr))
+                            data = data.decode('utf-8')
+                            self.__total_faces_detected_by_peer = int(data)
+                            Logger.logger().debug("Server {}: total_faces_detected_by_peer = {}".format(
                             server_address, self.__total_faces_detected_by_peer))
-                    else:
-                        Logger.logger().debug("server method_for_receiving_face_detected_by_peer: data is Null")
+                        else:
+                            Logger.logger().debug("server method_for_receiving_face_detected_by_peer: data is Null")
+    
+        except Exception as e:
+            Logger.logger().error(type(e).__name__ + ': ' + str(e))
+            time.sleep(1)
 
     def increment_face_detected_locally(self):
         """
@@ -125,7 +129,6 @@ class SendReceiveMessages(metaclass=Singleton):
         :param peer_port: str
         :return:
         """
-        Logger.logger().info("Client Running Thread method_for_transmitting_face_detected_locally...")
         # Create a TCP/IP socket
         # Connect the socket to the port where the server is listening
         peer_server_address = (peer_ip_address, peer_port)
@@ -133,12 +136,13 @@ class SendReceiveMessages(metaclass=Singleton):
         while SendReceiveMessages.run_program and not successfully_connected_to_peer:
             try:
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                    Logger.logger().info("Connecting to peer {}...".format(peer_server_address))
                     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                     s.connect(peer_server_address)
                     successfully_connected_to_peer = True
                     self.__send_face_detected_count_via_socket(s, peer_server_address)
             except Exception as e:
-                print(type(e).__name__ + ': ' + str(e))
+                Logger.logger().error(type(e).__name__ + ': ' + str(e))
                 time.sleep(1)
 
     def __send_face_detected_count_via_socket(self, sock, peer_server_address):
