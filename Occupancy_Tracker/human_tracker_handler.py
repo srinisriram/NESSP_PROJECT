@@ -1,9 +1,9 @@
-from Occupancy_Tracker.human_tracker import HumanTracker
-from Occupancy_Tracker.constants import COLUMN_SAMPLE_POINTS_LIST, Direction, COLUMN, TIMEOUT_FOR_TRACKER, DEMARCATION_LINE
-from Occupancy_Tracker.logger import Logger
+from human_tracker import HumanTracker
+from constants import COLUMN_SAMPLE_POINTS_LIST, Direction, COLUMN, TIMEOUT_FOR_TRACKER, DEMARCATION_LINE
+from logger import Logger
 import cv2
 from datetime import datetime
-from Occupancy_Tracker.human_validator import HumanValidator
+from human_validator import HumanValidator
 
 
 class HumanTrackerHandler:
