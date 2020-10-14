@@ -1,13 +1,13 @@
-from Occupancy_Tracker.constants import SEND_EMAIL, ENTER_LOG_FILE_NAME, EXIT_LOG_FILE_NAME, Direction
+from constants import SEND_EMAIL, ENTER_LOG_FILE_NAME, EXIT_LOG_FILE_NAME, Direction
 import cv2
 import os
 from threading import Thread
 from pathlib import Path
 from imutils.io import TempFile
-from Occupancy_Tracker.email_sender import EmailSender
+from email_sender import EmailSender
 from datetime import datetime
-from Occupancy_Tracker.logger import Logger
-from Occupancy_Tracker.send_receive_messages import SendReceiveMessages
+from logger import Logger
+from send_receive_messages import SendReceiveMessages
 
 
 class HumanValidator:

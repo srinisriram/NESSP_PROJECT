@@ -9,17 +9,17 @@ from datetime import datetime
 
 import cv2
 import imutils
-from Occupancy_Tracker.centroid_object_creator import CentroidObjectCreator
+from centroid_object_creator import CentroidObjectCreator
 # import the necessary packages
-from Occupancy_Tracker.constants import PROTO_TEXT_FILE, MODEL_NAME, FRAME_WIDTH_IN_PIXELS, VIDEO_DEV_ID, \
+from constants import PROTO_TEXT_FILE, MODEL_NAME, FRAME_WIDTH_IN_PIXELS, VIDEO_DEV_ID, \
     SERVER_PORT, TIMEOUT_FOR_TRACKER
-from Occupancy_Tracker.human_tracker_handler import HumanTrackerHandler
-from Occupancy_Tracker.human_validator import HumanValidator
-from Occupancy_Tracker.logger import Logger
-from Occupancy_Tracker.send_receive_messages import SendReceiveMessages
+from human_tracker_handler import HumanTrackerHandler
+from human_validator import HumanValidator
+from logger import Logger
+from send_receive_messages import SendReceiveMessages
 from imutils.video import FPS
 from imutils.video import VideoStream
-from Occupancy_Tracker.singleton_template import Singleton
+from singleton_template import Singleton
 
 
 class HumanDetector(metaclass=Singleton):
@@ -36,12 +36,20 @@ class HumanDetector(metaclass=Singleton):
         self.rgb = None
         self.meter_per_pixel = None
         self.args = None
+        parser = argparse.ArgumentParser()
+        parser.add_argument("-i", "--peer_ip_address", type=str, help="Provide the IP address of the remote raspberry PI.")
+        parser.add_argument("-p", "--peer_port", type=int, help="Provide the server port of the remote raspberry PI.",
+                        default=SERVER_PORT)
+        parser.add_argument('-d', '--debug', type=bool, help='Enable debug logging.', default=False)
+        self.args = parser.parse_args()
+        if self.args.debug:
+            Logger.set_log_level(logging.DEBUG)
         self.find_humans_from_video_file_name = find_humans_from_video_file_name
         self.use_pi_camera = use_pi_camera
         self.open_display = open_display
         self.perform_human_detection = True
 
-        SendReceiveMessages().perform_job()
+        SendReceiveMessages().perform_job(peer_ip_address=self.args.peer_ip_address)
 
         # Load Model
         self.load_model()
@@ -223,12 +231,4 @@ class HumanDetector(metaclass=Singleton):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-i", "--peer_ip_address", type=str, help="Provide the IP address of the remote raspberry PI.")
-    parser.add_argument("-p", "--peer_port", type=int, help="Provide the server port of the remote raspberry PI.",
-                        default=SERVER_PORT)
-    parser.add_argument('-d', '--debug', type=bool, help='Enable debug logging.', default=False)
-    args = parser.parse_args()
-    if args.debug:
-        Logger.set_log_level(logging.DEBUG)
     HumanDetector().perform_job()
