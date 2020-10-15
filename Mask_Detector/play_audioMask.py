@@ -1,8 +1,8 @@
 # This file implements logic to play a speech audio.
-from Mask_Detector.constants import sound_file
-import subprocess
 import os
+import subprocess
 
+from constants import sound_file
 
 
 class PlayAudio:
@@ -30,4 +30,3 @@ class PlayAudio:
             print("Played {} with return code {}.".format(sound_file, return_code))
         finally:
             return play_audio_successful
-
