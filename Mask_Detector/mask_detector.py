@@ -9,8 +9,6 @@ from play_audioMask import PlayAudio
 from tensorflow.keras.models import load_model
 from vars import prototxt_path, face_model_path, mask_model_path, video_cam_index, min_mask_confidence
 
-os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
-
 # Load all the models, and start the camera stream
 faceModel = cv2.dnn.readNet(prototxt_path, face_model_path)
 # faceModel.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
