@@ -12,8 +12,7 @@ from vars import prototxt_path, face_model_path, mask_model_path, min_mask_confi
 faceModel = cv2.dnn.readNet(prototxt_path, face_model_path)
 # faceModel.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
 maskModel = load_model(mask_model_path)
-videoFilePath = "/home/abhisar/PycharmProjects/NESSP_PROJECT/Mask_Detector/videos/intersection.mp4"
-stream = cv2.VideoCapture(videoFilePath)
+stream = cv2.VideoCapture(0)
 
 AudioPlay = False
 playAudio = False
