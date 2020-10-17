@@ -1,5 +1,4 @@
 # Import necessary packages
-import os
 import threading
 import time
 
@@ -7,14 +6,14 @@ import cv2
 from detect import detect
 from play_audioMask import PlayAudio
 from tensorflow.keras.models import load_model
-from vars import prototxt_path, face_model_path, mask_model_path, video_cam_index, min_mask_confidence
+from vars import prototxt_path, face_model_path, mask_model_path, min_mask_confidence
 
 # Load all the models, and start the camera stream
 faceModel = cv2.dnn.readNet(prototxt_path, face_model_path)
 # faceModel.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
 maskModel = load_model(mask_model_path)
-
-stream = cv2.VideoCapture(video_cam_index)
+videoFilePath = "/home/abhisar/PycharmProjects/NESSP_PROJECT/Mask_Detector/videos/intersection.mp4"
+stream = cv2.VideoCapture(videoFilePath)
 
 AudioPlay = False
 playAudio = False
@@ -97,11 +96,9 @@ def thread_for_mask_detection():
 
 
 if __name__ == "__main__":
-    t1 = threading.Thread(target=thread_for_mask_detection)
-    t2 = threading.Thread(target=thread_for_when_to_play_audio)
+    thread_for_mask_detection()
+    t1 = threading.Thread(target=thread_for_when_to_play_audio)
 
     t1.start()
-    t2.start()
 
     t1.join()
-    t2.join()
