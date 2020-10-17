@@ -95,9 +95,8 @@ def thread_for_mask_detection():
 
 
 if __name__ == "__main__":
-    thread_for_mask_detection()
     t1 = threading.Thread(target=thread_for_when_to_play_audio)
 
     t1.start()
 
-    t1.join()
+    thread_for_mask_detection()

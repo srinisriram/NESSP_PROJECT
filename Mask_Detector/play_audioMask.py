@@ -20,7 +20,7 @@ class PlayAudio:
         try:
             speech_file_path = os.path.join(os.path.dirname(__file__), sound_file)
             print("Trying to open {}.".format(speech_file_path))
-            return_code = subprocess.call(["afplay", speech_file_path])
+            return_code = subprocess.call(["aplay", speech_file_path])
             play_audio_successful = True
         except KeyboardInterrupt:
             print('\nInterrupted by user')
