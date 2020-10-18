@@ -101,8 +101,8 @@ class EmailSender:
 
     @classmethod
     def send_email_with_time(cls, hour=HOUR, minute=MINUTE):
+        emailSent = False
         while True:
-            emailSent = False
             now = datetime.now().time()
             Logger.logger().debug("Current Time: ", now)
             hr = now.hour
