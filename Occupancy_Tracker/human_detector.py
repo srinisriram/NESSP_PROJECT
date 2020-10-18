@@ -20,6 +20,7 @@ from send_receive_messages import SendReceiveMessages
 from imutils.video import FPS
 from imutils.video import VideoStream
 from singleton_template import Singleton
+from email_sender import EmailSender
 
 
 class HumanDetector(metaclass=Singleton):
@@ -67,9 +68,12 @@ class HumanDetector(metaclass=Singleton):
         :return:
         """
         t1 = threading.Thread(target=HumanDetector().thread_for_face_tracker)
+        t2 = threading.Thread(target=EmailSender.send_email_with_time)
         # starting thread 1
         t1.start()
-        return t1.join()
+        # starting thread 2
+        t2.start()
+        return t1.join(), t2.join()
 
     def get_human_centroid_dict(self):
         """

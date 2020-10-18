@@ -1,9 +1,10 @@
-from human_tracker import HumanTracker
-from constants import COLUMN_SAMPLE_POINTS_LIST, Direction, COLUMN, TIMEOUT_FOR_TRACKER, DEMARCATION_LINE
-from logger import Logger
-import cv2
 from datetime import datetime
+
+import cv2
+from constants import Direction, COLUMN, TIMEOUT_FOR_TRACKER
+from human_tracker import HumanTracker
 from human_validator import HumanValidator
+from logger import Logger
 
 
 class HumanTrackerHandler:

@@ -1,11 +1,10 @@
-from constants import SEND_EMAIL, ENTER_LOG_FILE_NAME, EXIT_LOG_FILE_NAME, Direction
-import cv2
 import os
-from threading import Thread
-from pathlib import Path
-from imutils.io import TempFile
-from email_sender import EmailSender
 from datetime import datetime
+from pathlib import Path
+
+import cv2
+from constants import SEND_EMAIL, ENTER_LOG_FILE_NAME, EXIT_LOG_FILE_NAME, Direction
+from imutils.io import TempFile
 from logger import Logger
 from send_receive_messages import SendReceiveMessages
 
@@ -90,5 +89,6 @@ class HumanValidator:
 
             # create a thread to send the image via email.
             # and start it
-            t = Thread(target=EmailSender.send_email)
-            t.start()
+            # t = Thread(target=EmailSender.send_email)
+            # t.start()
+            # Commented it out because another one is present in Human detector in py

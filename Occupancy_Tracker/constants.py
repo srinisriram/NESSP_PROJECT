@@ -57,6 +57,12 @@ TEST_VIDEO_FILE_PATH_2 = 'videos/example_02.mp4'
 # Log file name
 ENTER_LOG_FILE_NAME = "enter_file.csv"
 EXIT_LOG_FILE_NAME = "exit_file.csv"
+WEEKLY_LOG_FILE_NAME = "weekly_enter_file.csv"
+MONTHLY_LOG_FILE_NAME = "monthly_enter_file.csv"
+
+# Time for sending the Email
+HOUR = 22
+MINUTE = 0
 
 USE_PI_CAMERA = True
 
