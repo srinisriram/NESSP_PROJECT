@@ -10,7 +10,7 @@ from vars import prototxt_path, face_model_path, mask_model_path, min_mask_confi
 
 # Load all the models, and start the camera stream
 faceModel = cv2.dnn.readNet(prototxt_path, face_model_path)
-# faceModel.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
+faceModel.setPreferableTarget(cv2.dnn.DNN_TARGET_MYRIAD)
 maskModel = load_model(mask_model_path)
 stream = cv2.VideoCapture(0)
 
@@ -65,16 +65,13 @@ def thread_for_mask_detection():
             (startX, startY, endX, endY) = box
             (mask, withoutMask) = pred
 
+            confidence = max(mask, withoutMask) * 100
             # Determine the class label and make actions accordingly
             if mask > withoutMask:
-                confidence = round(mask)
-                confidence *= 100
                 if confidence > min_mask_confidence:
                     label = 'Mask ' + str(confidence)
                     color = (0, 255, 0)
             else:
-                confidence = round(withoutMask)
-                confidence *= 100
                 if confidence > min_mask_confidence:
                     label = 'No Mask ' + str(confidence)
                     playAudio = True
