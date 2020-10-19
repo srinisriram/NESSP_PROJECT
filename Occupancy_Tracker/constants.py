@@ -62,7 +62,7 @@ MONTHLY_LOG_FILE_NAME = "monthly_enter_file.csv"
 
 # Time for sending the Email
 HOUR = 16
-MINUTE = 25
+MINUTE = 29
 DAY = "Sunday"
 DATE = 1
 

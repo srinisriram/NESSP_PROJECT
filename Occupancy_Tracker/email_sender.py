@@ -144,11 +144,14 @@ class EmailSender:
         day = datetime.datetime.now().strftime("%A")
         date = datetime.date.today().day
 
-        with open(ENTER_LOG_FILE_NAME, "w") as dailyfile:
-            dailyfile.truncate(0)
+        file = open(ENTER_LOG_FILE_NAME, "r+")
+        file.truncate(0)
+        file.close()
         if day == DAY:
-            with open(WEEKLY_LOG_FILE_NAME, "w") as weeklyfile:
-                weeklyfile.truncate(0)
+            file1 = open(WEEKLY_LOG_FILE_NAME, "r+")
+            file1.truncate(0)
+            file1.close()
         if date == DATE:
-            with open(MONTHLY_LOG_FILE_NAME, "w") as monthlyfile:
-                monthlyfile.truncate(0)
+            file2 = open(MONTHLY_LOG_FILE_NAME, "r+")
+            file2.truncate(0)
+            file2.close()
