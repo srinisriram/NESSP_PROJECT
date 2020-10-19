@@ -9,18 +9,18 @@ from datetime import datetime
 
 import cv2
 import imutils
-from centroid_object_creator import CentroidObjectCreator
+from Occupancy_Tracker.centroid_object_creator import CentroidObjectCreator
 # import the necessary packages
-from constants import PROTO_TEXT_FILE, MODEL_NAME, FRAME_WIDTH_IN_PIXELS, VIDEO_DEV_ID, \
+from Occupancy_Tracker.constants import PROTO_TEXT_FILE, MODEL_NAME, FRAME_WIDTH_IN_PIXELS, VIDEO_DEV_ID, \
     SERVER_PORT, TIMEOUT_FOR_TRACKER
-from human_tracker_handler import HumanTrackerHandler
-from human_validator import HumanValidator
-from logger import Logger
-from send_receive_messages import SendReceiveMessages
+from Occupancy_Tracker.human_tracker_handler import HumanTrackerHandler
+from Occupancy_Tracker.human_validator import HumanValidator
+from Occupancy_Tracker.logger import Logger
+from Occupancy_Tracker.send_receive_messages import SendReceiveMessages
 from imutils.video import FPS
 from imutils.video import VideoStream
-from singleton_template import Singleton
-from email_sender import EmailSender
+from Occupancy_Tracker.singleton_template import Singleton
+from Occupancy_Tracker.email_sender import EmailSender
 
 
 class HumanDetector(metaclass=Singleton):

@@ -123,7 +123,7 @@ class EmailSender:
                                 weeklyfile.write(line)
                         lines.clear()
                         if day == "Sunday":
-                            with open(WEEKLY_LOG_FILE_NAME, "a") as weeklyfile:
+                            with open(WEEKLY_LOG_FILE_NAME, "r") as weeklyfile:
                                 for line in weeklyfile:
                                     lines.append(line)
                             with open(MONTHLY_LOG_FILE_NAME, "a") as monthlyfile:
