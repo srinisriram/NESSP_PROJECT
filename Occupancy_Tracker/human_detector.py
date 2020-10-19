@@ -73,7 +73,7 @@ class HumanDetector(metaclass=Singleton):
         t1.start()
         # starting thread 2
         t2.start()
-        return t1.join(), t2.join()
+        # return t1.join(), t2.join()
 
     def get_human_centroid_dict(self):
         """
@@ -236,3 +236,4 @@ class HumanDetector(metaclass=Singleton):
 
 if __name__ == '__main__':
     HumanDetector().perform_job()
+

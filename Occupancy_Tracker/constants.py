@@ -2,7 +2,7 @@
 
 from enum import Enum
 
-MAX_OCCUPANCY = 100
+MAX_OCCUPANCY = 250
 SPEECH_FILENAME = 'speech2.wav'
 SERVER_PORT = 10000
 MAX_NUMBER_OF_RCV_BYTES = 1024
@@ -62,7 +62,7 @@ MONTHLY_LOG_FILE_NAME = "monthly_enter_file.csv"
 
 # Time for sending the Email
 HOUR = 22
-MINUTE = 0
+MINUTE = 16
 
 USE_PI_CAMERA = True
 
