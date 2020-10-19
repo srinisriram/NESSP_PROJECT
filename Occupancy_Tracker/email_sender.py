@@ -88,10 +88,12 @@ class EmailSender:
 
         msg.attach(MIMEText(body, "plain"))
         context = ssl.create_default_context()
+        print("[INFO] Attached all the right parts")
         try:
             with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
                 server.login(sender_email, password)
                 server.sendmail(sender_email, receiver_email, msg.as_string())
+            print("[INFO] Email Should have sent")
         except Exception as e:
             print(type(e).__name__ + ': ' + str(e))
         else:
