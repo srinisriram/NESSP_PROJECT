@@ -115,7 +115,10 @@ class EmailSender:
                             for line in dailyfile:
                                 lines.append(line)
                         with open(WEEKLY_LOG_FILE_NAME, "a") as weeklyfile:
-                            lines.pop(0)
+                            try:
+                                lines.pop(0)
+                            except:
+                                pass
                             for line in lines:
                                 weeklyfile.write(line)
                         lines.clear()
