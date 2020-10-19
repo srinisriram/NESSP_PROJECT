@@ -63,6 +63,8 @@ MONTHLY_LOG_FILE_NAME = "monthly_enter_file.csv"
 # Time for sending the Email
 HOUR = 22
 MINUTE = 16
+DAY = "Sunday"
+DATE = 1
 
 USE_PI_CAMERA = True
 

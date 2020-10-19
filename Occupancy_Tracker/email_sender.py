@@ -8,7 +8,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import formatdate
 
-from Occupancy_Tracker.constants import ENTER_LOG_FILE_NAME, WEEKLY_LOG_FILE_NAME, MONTHLY_LOG_FILE_NAME, HOUR, MINUTE
+from Occupancy_Tracker.constants import ENTER_LOG_FILE_NAME, WEEKLY_LOG_FILE_NAME, MONTHLY_LOG_FILE_NAME, HOUR, MINUTE, DAY, DATE
 from Occupancy_Tracker.logger import Logger
 
 
@@ -56,9 +56,9 @@ class EmailSender:
             numofpeo - 1)
 
         attachmentsList = [enter_excel_sheet]
-        if day == "Sunday":
+        if day == DAY:
             attachmentsList.append(weekly_enter_excel)
-        if date == 1:
+        if date == DATE:
             attachmentsList.append(monthly_enter_excel)
         for each_file_path in attachmentsList:
             file_name = each_file_path.split("/")[-1]
@@ -93,6 +93,12 @@ class EmailSender:
 
     @classmethod
     def send_email_with_time(cls, hour=HOUR, minute=MINUTE):
+        """
+        This methods sends an email on a certain time that is set in constants.
+        :param hour:
+        :param minute:
+        :return:
+        """
         emailSent = False
         while True:
             now = datetime.datetime.now().time()
@@ -105,17 +111,15 @@ class EmailSender:
                     if emailSent == False:
                         lines = []
                         day = datetime.datetime.now().strftime("%A")
-                        date = datetime.date.today().day
                         with open(ENTER_LOG_FILE_NAME, "r") as dailyfile:
                             for line in dailyfile:
                                 lines.append(line)
-                        dailyfile.truncate(0)
                         with open(WEEKLY_LOG_FILE_NAME, "a") as weeklyfile:
                             lines.pop(0)
                             for line in lines:
                                 weeklyfile.write(line)
                         lines.clear()
-                        if day == "Sunday":
+                        if day == DAY:
                             with open(WEEKLY_LOG_FILE_NAME, "r") as weeklyfile:
                                 for line in weeklyfile:
                                     lines.append(line)
@@ -124,10 +128,27 @@ class EmailSender:
                                 for line in lines:
                                     monthlyfile.write(line)
                                 lines.clear()
-                        weeklyfile.truncate(0)
-                        if date == "1":
-                            monthlyfile.truncate(0)
                         Logger.logger().info("[INFO] Sending Email...")
                         EmailSender.email_send()
                         Logger.logger().info("[INFO] Email Sent...")
+                        Logger.logger().info("[INFO] Clearing file(s)...")
+                        EmailSender.clear_all_files()
                         emailSent = True
+
+    @classmethod
+    def clear_all_files(self):
+        """
+        This method clears all the files depending on what day it is.
+        :return:
+        """
+        day = datetime.datetime.now().strftime("%A")
+        date = datetime.date.today().day
+
+        with open(ENTER_LOG_FILE_NAME, "r") as dailyfile:
+            dailyfile.truncate(0)
+        if day == DAY:
+            with open(WEEKLY_LOG_FILE_NAME, "r") as weeklyfile:
+                weeklyfile.truncate(0)
+        if date == DATE:
+            with open(MONTHLY_LOG_FILE_NAME, "r") as monthlyfile:
+                monthlyfile.truncate(0)
