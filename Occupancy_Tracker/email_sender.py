@@ -45,55 +45,45 @@ class EmailSender:
         Logger.logger().debug(monthly_enter_excel)
         msg = MIMEMultipart()
         sender_email = "maskdetector101@gmail.com"
-        receiver_email = "srinivassriram06@gmail.com"
+        receiver_email = "adityaanand.muz@gmail.com, srinivassriram06@gmail.com, raja.muz@gmail.com, abhisar.muz@gmail.com"
         password = "LearnIOT06!"
         msg['From'] = 'maskdetector101@gmail.com'
-        msg['To'] = ["adityaanand.muz@gmail.com", "srinivassriram06@gmail.com", "raja.muz@gmail.com",
-                     "abhisar.muz@gmail.com"]
+        msg['To'] = "adityaanand.muz@gmail.com, srinivassriram06@gmail.com, raja.muz@gmail.com, abhisar.muz@gmail.com"
         msg['Date'] = formatdate(localtime=True)
         msg['Subject'] = 'Here is the Occupancy List for Today'
 
-        body = 'Dear Board Members,\n\nPlease find the attached daily occupancy tracker sheet for your reference.\n\nThe total amount of people that visited today:{}\n\nThanks and regards,\nPI_Defense'.format(
+        body = 'Dear Board Members,\n\nPlease find the attached daily occupancy tracker sheet for your reference.\n\nThe total amount of people that visited today: {}\n\nThanks and regards,\nPI_Defense'.format(
             numofpeo - 1)
 
-        part = MIMEBase('application', "octet-stream")
-        part.set_payload(open(enter_excel_sheet, "rb").read())
-        encoders.encode_base64(part)
-        part.add_header('Content-Disposition', 'attachment; filename="{}"'.format(enter_excel_sheet))
-        msg.attach(part)
-
+        attachmentsList = [enter_excel_sheet]
         if day == "Sunday":
-            part2 = MIMEBase('application', "octet-stream")
-            part2.set_payload(open(weekly_enter_excel, "rb").read())
-            encoders.encode_base64(part2)
-            part2.add_header('Content-Disposition', 'attachment; filename="{}"'.format(weekly_enter_excel))
-            body = 'Dear Board Members,\n\nPlease find the attached daily and weekly occupancy tracker sheet for your reference.\n\nThe total amount of people that visited today:{}\n\nThanks and regards,\nPI_Defense'.format(
-                numofpeo - 1)
-            msg.attach(part2)
+            attachmentsList.append(weekly_enter_excel)
+        if date == 1:
+            attachmentsList.append(monthly_enter_excel)
+        for each_file_path in attachmentsList:
+            file_name = each_file_path.split("/")[-1]
+            part = MIMEBase('application', "octet-stream")
+            part.set_payload(open(each_file_path, "rb").read())
+            encoders.encode_base64(part)
+            part.add_header('Content-Disposition', 'attachment', filename=file_name)
+            msg.attach(part)
 
-        if date == "1":
-            part2 = MIMEBase('application', "octet-stream")
-            part2.set_payload(open(weekly_enter_excel, "rb").read())
-            encoders.encode_base64(part2)
-            part2.add_header('Content-Disposition', 'attachment; filename="{}"'.format(weekly_enter_excel))
-            msg.attach(part2)
-
-            part3 = MIMEBase('application', "octet-stream")
-            part3.set_payload(open(monthly_enter_excel, "rb").read())
-            encoders.encode_base64(part3)
-            part3.add_header('Content-Disposition', 'attachment; filename="{}"'.format(monthly_enter_excel))
-            body = 'Dear Board Members,\n\nPlease find the attached daily, weekly and monthly occupancy tracker sheet for your reference.\n\nThe total amount of people that visited today:{}\n\nThanks and regards,\nPI_Defense'.format(
+        if len(attachmentsList) == 1:
+            body = 'Dear Board Members,\n\nPlease find the attached daily occupancy tracker sheet for your reference.\n\nThe total amount of people that visited today: {}\n\nThanks and regards,\nPI_Defense'.format(
                 numofpeo - 1)
-            msg.attach(part3)
+        elif len(attachmentsList) == 2:
+            body = 'Dear Board Members,\n\nPlease find the attached daily and weekly occupancy tracker sheet for your reference.\n\nThe total amount of people that visited today: {}\n\nThanks and regards,\nPI_Defense'.format(
+                numofpeo - 1)
+        elif len(attachmentsList) == 3:
+            body = 'Dear Board Members,\n\nPlease find the attached daily, weekly and monthly occupancy tracker sheet for your reference.\n\nThe total amount of people that visited today: {}\n\nThanks and regards,\nPI_Defense'.format(
+                numofpeo - 1)
 
         msg.attach(MIMEText(body, "plain"))
         context = ssl.create_default_context()
-        print("[INFO] Attached all the right parts")
         try:
             with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
                 server.login(sender_email, password)
-                server.sendmail(sender_email, receiver_email, msg.as_string())
-            print("[INFO] Email Should have sent")
+                server.sendmail(sender_email, receiver_email.split(","), msg.as_string())
         except Exception as e:
             print(type(e).__name__ + ': ' + str(e))
         else:
@@ -119,6 +109,7 @@ class EmailSender:
                         with open(ENTER_LOG_FILE_NAME, "r") as dailyfile:
                             for line in dailyfile:
                                 lines.append(line)
+                        dailyfile.truncate(0)
                         with open(WEEKLY_LOG_FILE_NAME, "a") as weeklyfile:
                             lines.pop(0)
                             for line in lines:
@@ -133,9 +124,8 @@ class EmailSender:
                                 for line in lines:
                                     monthlyfile.write(line)
                                 lines.clear()
+                        weeklyfile.truncate(0)
                         if date == "1":
-                            dailyfile.truncate(0)
-                            weeklyfile.truncate(0)
                             monthlyfile.truncate(0)
                         Logger.logger().info("[INFO] Sending Email...")
                         EmailSender.email_send()
