@@ -111,31 +111,40 @@ class EmailSender:
                     if emailSent == False:
                         lines = []
                         day = datetime.datetime.now().strftime("%A")
-                        with open(ENTER_LOG_FILE_NAME, "r") as dailyfile:
-                            for line in dailyfile:
-                                lines.append(line)
-                        with open(WEEKLY_LOG_FILE_NAME, "a") as weeklyfile:
-                            try:
-                                lines.pop(0)
-                            except:
-                                pass
-                            for line in lines:
-                                weeklyfile.write(line)
+                        dailyfile = open(ENTER_LOG_FILE_NAME, "r")
+                        for line in dailyfile:
+                            lines.append(line)
+                        dailyfile.close()
+                        weeklyfile = open(WEEKLY_LOG_FILE_NAME, "a")
+                        try:
+                            lines.pop(0)
+                        except Exception as e:
+                            Logger.logger().info(type(e).__name__ + ': ' + str(e))
+                            pass
+                        for line in lines:
+                            weeklyfile.write(line)
+                        weeklyfile.close()
                         lines.clear()
                         if day == DAY:
-                            with open(WEEKLY_LOG_FILE_NAME, "r") as weeklyfile:
-                                for line in weeklyfile:
-                                    lines.append(line)
-                            with open(MONTHLY_LOG_FILE_NAME, "a") as monthlyfile:
+                            weeklyfile = open(WEEKLY_LOG_FILE_NAME, "r")
+                            for line in weeklyfile:
+                                lines.append(line)
+                            weeklyfile.close()
+                            monthlyfile = open(MONTHLY_LOG_FILE_NAME, )
+                            try:
                                 lines.pop(0)
-                                for line in lines:
-                                    monthlyfile.write(line)
-                                lines.clear()
+                            except Exception as e:
+                                Logger.logger().info(type(e).__name__ + ': ' + str(e))
+                                pass
+                            for line in lines:
+                                monthlyfile.write(line)
+                            lines.clear()
+                            monthlyfile.close()
                         Logger.logger().info("[INFO] Sending Email...")
                         EmailSender.email_send()
                         Logger.logger().info("[INFO] Email Sent...")
                         Logger.logger().info("[INFO] Clearing file(s)...")
-                        EmailSender.clear_all_files()
+                        # EmailSender.clear_all_files()
                         emailSent = True
 
     @classmethod

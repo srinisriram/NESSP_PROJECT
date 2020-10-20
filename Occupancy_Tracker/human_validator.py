@@ -28,12 +28,12 @@ class HumanValidator:
             cls.enter_log_file = open(os.path.join(Path(__file__).parent, ENTER_LOG_FILE_NAME), mode="a")
         # set the file pointer to end of the file
         if cls.enter_log_file.seek(0, os.SEEK_END) == 0:
-            cls.enter_log_file.write("Year,Month,Day,Time (in MPH),Speed\n")
+            cls.enter_log_file.write("Year,Month,Day,Time,Direction\n")
         if not cls.exit_log_file:
             cls.exit_log_file = open(os.path.join(Path(__file__).parent, EXIT_LOG_FILE_NAME), mode="a")
         # set the file pointer to end of the file
         if cls.exit_log_file.seek(0, os.SEEK_END) == 0:
-            cls.exit_log_file.write("Year,Month,Day,Time (in MPH),Speed\n")
+            cls.exit_log_file.write("Year,Month,Day,Time,Direction\n")
 
     @classmethod
     def validate_column_movement(cls, trackable_object, time_stamp, frame, objectID):
