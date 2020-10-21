@@ -1,3 +1,4 @@
+
 import os
 from datetime import datetime
 from pathlib import Path
@@ -41,11 +42,6 @@ class HumanValidator:
         if not cls.enter_log_file or not cls.exit_log_file:
             cls.initialize_log_file()
 
-        if cls.enter_log_file.closed:
-            cls.enter_log_file = open(os.path.join(Path(__file__).parent, ENTER_LOG_FILE_NAME), mode="a")
-        elif cls.exit_log_file.closed:
-            cls.exit_log_file = open(os.path.join(Path(__file__).parent, EXIT_LOG_FILE_NAME), mode="a")
-
         # check if the object has not been logged
         if not trackable_object.logged and trackable_object.estimated and trackable_object.direction:
             Logger.logger().info("For objectID={}, direction ={}".format(
@@ -83,9 +79,7 @@ class HumanValidator:
                 info = "{},{},{},{},{}\n".format(year, month,
                                                  day, time, repr(trackable_object.direction))
             if trackable_object.direction == Direction.ENTER:
-                Logger.logger().info("Writing to CSV...")
                 cls.enter_log_file.write(info)
-                Logger.logger().info("Finished Writing...")
                 SendReceiveMessages().increment_face_detected_locally()
             elif trackable_object.direction == Direction.EXIT:
                 cls.exit_log_file.write(info)
@@ -93,9 +87,6 @@ class HumanValidator:
 
             # set the object has logged
             trackable_object.logged = True
-
-            if cls.enter_log_file.closed or cls.exit_log_file.closed:
-                cls.close_log_file()
 
             # create a thread to send the image via email.
             # and start it
