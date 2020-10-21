@@ -78,7 +78,9 @@ class HumanValidator:
                 info = "{},{},{},{},{}\n".format(year, month,
                                                  day, time, repr(trackable_object.direction))
             if trackable_object.direction == Direction.ENTER:
+                Logger.logger().info("Writing to CSV...")
                 cls.enter_log_file.write(info)
+                Logger.logger().info("Finished Writing...")
                 SendReceiveMessages().increment_face_detected_locally()
             elif trackable_object.direction == Direction.EXIT:
                 cls.exit_log_file.write(info)
