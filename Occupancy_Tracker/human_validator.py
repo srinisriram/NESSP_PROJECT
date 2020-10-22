@@ -1,11 +1,11 @@
-
-import os
-from datetime import datetime
-from pathlib import Path
-
-import cv2
 from Occupancy_Tracker.constants import SEND_EMAIL, ENTER_LOG_FILE_NAME, EXIT_LOG_FILE_NAME, Direction
+import cv2
+import os
+from threading import Thread
+from pathlib import Path
 from imutils.io import TempFile
+from Occupancy_Tracker.email_sender import EmailSender
+from datetime import datetime
 from Occupancy_Tracker.logger import Logger
 from Occupancy_Tracker.send_receive_messages import SendReceiveMessages
 
@@ -90,6 +90,5 @@ class HumanValidator:
 
             # create a thread to send the image via email.
             # and start it
-            # t = Thread(target=EmailSender.send_email)
-            # t.start()
-            # Commented it out because another one is present in Human detector in py
+            t = Thread(target=EmailSender.send_email)
+            t.start()

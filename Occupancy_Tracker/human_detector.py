@@ -68,12 +68,9 @@ class HumanDetector(metaclass=Singleton):
         :return:
         """
         t1 = threading.Thread(target=HumanDetector().thread_for_face_tracker)
-        t2 = threading.Thread(target=EmailSender.send_email_with_time)
         # starting thread 1
         t1.start()
-        # starting thread 2
-        t2.start()
-        # return t1.join(), t2.join()
+        return t1.join()
 
     def get_human_centroid_dict(self):
         """
