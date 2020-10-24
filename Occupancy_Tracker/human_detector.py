@@ -231,7 +231,6 @@ class HumanDetector(metaclass=Singleton):
                 Logger.logger().error("Caught an exception while looping over streams {}, rebooting....".format(
                     type(e).__name__ + ': ' + str(e)))
                 return_value = False
-                os.system("sudo reboot")
         return return_value
 
 
