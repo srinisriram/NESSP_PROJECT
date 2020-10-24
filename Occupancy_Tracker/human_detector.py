@@ -15,7 +15,7 @@ from imutils.video import VideoStream
 from Occupancy_Tracker.centroid_object_creator import CentroidObjectCreator
 # import the necessary packages
 from Occupancy_Tracker.constants import PROTO_TEXT_FILE, MODEL_NAME, FRAME_WIDTH_IN_PIXELS, VIDEO_DEV_ID, \
-    SERVER_PORT, TIMEOUT_FOR_TRACKER, USE_PI_CAMERA, OPEN_DISPLAY
+    SERVER_PORT, TIMEOUT_FOR_TRACKER, USE_PI_CAMERA, OPEN_DISPLAY, ERROR_MESSAGE
 from Occupancy_Tracker.email_sender import EmailSender
 from Occupancy_Tracker.human_tracker_handler import HumanTrackerHandler
 from Occupancy_Tracker.human_validator import HumanValidator

@@ -70,6 +70,7 @@ USE_PI_CAMERA = True
 
 CLEAR_FILES = True
 
+OCCUPATION_LOG = "/home/pi/Occupation.log"
 
 class Direction(Enum):
     ENTER = 1
