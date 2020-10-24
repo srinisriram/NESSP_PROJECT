@@ -12,7 +12,7 @@ import imutils
 from Occupancy_Tracker.centroid_object_creator import CentroidObjectCreator
 # import the necessary packages
 from Occupancy_Tracker.constants import PROTO_TEXT_FILE, MODEL_NAME, FRAME_WIDTH_IN_PIXELS, VIDEO_DEV_ID, \
-    SERVER_PORT, TIMEOUT_FOR_TRACKER
+    SERVER_PORT, TIMEOUT_FOR_TRACKER, USE_PI_CAMERA, OPEN_DISPLAY
 from Occupancy_Tracker.human_tracker_handler import HumanTrackerHandler
 from Occupancy_Tracker.human_validator import HumanValidator
 from Occupancy_Tracker.logger import Logger
@@ -20,12 +20,11 @@ from Occupancy_Tracker.send_receive_messages import SendReceiveMessages
 from imutils.video import FPS
 from imutils.video import VideoStream
 from Occupancy_Tracker.singleton_template import Singleton
-from Occupancy_Tracker.email_sender import EmailSender
 
 
 class HumanDetector(metaclass=Singleton):
     def __init__(self, find_humans_from_video_file_name=None,
-                 use_pi_camera=True, open_display=True):
+                 use_pi_camera=USE_PI_CAMERA, open_display=OPEN_DISPLAY):
         # initialize the frame dimensions (we'll set them as soon as we read
         # the first frame from the video)
         self.H = None
@@ -157,44 +156,44 @@ class HumanDetector(metaclass=Singleton):
             (self.H, self.W) = self.frame.shape[:2]
 
     def loop_over_streams(self):
-        while self.perform_human_detection:
-            self.grab_next_frame()
-            # check if the frame is None, if so, break out of the loop
-            if self.frame is None:
-                if self.find_humans_from_video_file_name:
-                    for _ in range(TIMEOUT_FOR_TRACKER+1):
-                        HumanTrackerHandler.compute_direction_for_dangling_object_ids(keep_dict_items=True)
-                        time.sleep(1)
-                    self.perform_human_detection = False
-                    break
-                else:
-                    HumanTrackerHandler.compute_direction_for_dangling_object_ids()
-                    continue
-            self.set_frame_dimensions()
-
-            objects = self.centroid_object_creator.create_centroid_tracker_object(self.H, self.W, self.rgb, self.net,
-                                                                                  self.frame)
-            for speed_tracked_object, objectID, centroid in HumanTrackerHandler.yield_a_human_tracker_object(objects):
-                HumanTrackerHandler.record_movement(speed_tracked_object)
-                HumanValidator.validate_column_movement(speed_tracked_object, self.current_time_stamp, self.frame,
-                                                        objectID)
+        # while self.perform_human_detection:
+        self.grab_next_frame()
+        # check if the frame is None, if so, break out of the loop
+        if self.frame is None:
             if self.find_humans_from_video_file_name:
-                HumanTrackerHandler.compute_direction_for_dangling_object_ids(keep_dict_items=True)
+                for _ in range(TIMEOUT_FOR_TRACKER+1):
+                    HumanTrackerHandler.compute_direction_for_dangling_object_ids(keep_dict_items=True)
+                    time.sleep(1)
+                self.perform_human_detection = False
+                # break
             else:
                 HumanTrackerHandler.compute_direction_for_dangling_object_ids()
+                # continue
+        self.set_frame_dimensions()
 
-            # if the *display* flag is set, then display the current frame
-            # to the screen and record if a user presses a key
-            if self.open_display:
-                cv2.imshow("Human_detector_frame", self.frame)
-                key = cv2.waitKey(1) & 0xFF
+        objects = self.centroid_object_creator.create_centroid_tracker_object(self.H, self.W, self.rgb, self.net,
+                                                                              self.frame)
+        for speed_tracked_object, objectID, centroid in HumanTrackerHandler.yield_a_human_tracker_object(objects):
+            HumanTrackerHandler.record_movement(speed_tracked_object)
+            HumanValidator.validate_column_movement(speed_tracked_object, self.current_time_stamp, self.frame,
+                                                    objectID)
+        if self.find_humans_from_video_file_name:
+            HumanTrackerHandler.compute_direction_for_dangling_object_ids(keep_dict_items=True)
+        else:
+            HumanTrackerHandler.compute_direction_for_dangling_object_ids()
 
-                # if the `q` key is pressed, break from the loop
-                if key == ord("q"):
-                    break
+        # if the *display* flag is set, then display the current frame
+        # to the screen and record if a user presses a key
+        if self.open_display:
+            cv2.imshow("Human_detector_frame", self.frame)
+            key = cv2.waitKey(1) & 0xFF
 
-            # Update the FPS counter
-            self.fps.update()
+            # if the `q` key is pressed, break from the loop
+            # if key == ord("q"):
+            #     break
+
+        # Update the FPS counter
+        self.fps.update()
 
     def clean_up(self):
         self.perform_human_detection = False
@@ -220,7 +219,9 @@ class HumanDetector(metaclass=Singleton):
 
     def thread_for_face_tracker(self):
         return_value = True
-        while self.perform_human_detection:
+        currhour = datetime.now().minute
+        while self.perform_human_detection and (45 < currhour > 46):
+            currhour = datetime.now().minute
             try:
                 self.loop_over_streams()
             except Exception as e:
@@ -228,6 +229,7 @@ class HumanDetector(metaclass=Singleton):
                     type(e).__name__ + ': ' + str(e)))
                 return_value = False
                 os.system("sudo reboot")
+        HumanDetector.clean_up()
         return return_value
 
 

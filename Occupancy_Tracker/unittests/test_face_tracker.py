@@ -51,7 +51,7 @@ class TestFaceTracker(unittest.TestCase):
         self.assertEqual(human_centroid_dict[0].direction, Direction.EXIT)
         self.assertEqual(human_centroid_dict[1].direction, Direction.EXIT)
         self.assertEqual(SendReceiveMessages().get_face_detected_count_locally(), -2)
-        human_detector_inst.clean_up()
+        # human_detector_inst.clean_up()
         self.__cleanup()
 
     def test_three_persons_entering(self):

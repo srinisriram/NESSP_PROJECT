@@ -66,7 +66,7 @@ MINUTE = 0
 DAY = "Tuesday"
 DATE = 20
 
-USE_PI_CAMERA = True
+USE_PI_CAMERA = False
 
 
 class Direction(Enum):
