@@ -55,18 +55,20 @@ TEST_VIDEO_FILE_PATH_1 = 'videos/example_01.mp4'
 TEST_VIDEO_FILE_PATH_2 = 'videos/example_02.mp4'
 
 # Log file name
-ENTER_LOG_FILE_NAME = "enter_file.csv"
-EXIT_LOG_FILE_NAME = "exit_file.csv"
+ENTER_LOG_FILE_NAME = "exit_file.csv"
+EXIT_LOG_FILE_NAME = "enter_file.csv"
 WEEKLY_LOG_FILE_NAME = "weekly_enter_file.csv"
 MONTHLY_LOG_FILE_NAME = "monthly_enter_file.csv"
 
 # Time for sending the Email
-HOUR = 21
+HOUR = 22
 MINUTE = 0
-DAY = "Tuesday"
-DATE = 20
+DAY = "Saturday"
+DATE = 24
 
-USE_PI_CAMERA = False
+USE_PI_CAMERA = True
+
+CLEAR_FILES = True
 
 
 class Direction(Enum):

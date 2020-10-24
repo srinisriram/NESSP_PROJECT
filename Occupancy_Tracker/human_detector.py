@@ -9,16 +9,18 @@ from datetime import datetime
 
 import cv2
 import imutils
+from imutils.video import FPS
+from imutils.video import VideoStream
+
 from Occupancy_Tracker.centroid_object_creator import CentroidObjectCreator
 # import the necessary packages
 from Occupancy_Tracker.constants import PROTO_TEXT_FILE, MODEL_NAME, FRAME_WIDTH_IN_PIXELS, VIDEO_DEV_ID, \
     SERVER_PORT, TIMEOUT_FOR_TRACKER, USE_PI_CAMERA, OPEN_DISPLAY
+from Occupancy_Tracker.email_sender import EmailSender
 from Occupancy_Tracker.human_tracker_handler import HumanTrackerHandler
 from Occupancy_Tracker.human_validator import HumanValidator
 from Occupancy_Tracker.logger import Logger
 from Occupancy_Tracker.send_receive_messages import SendReceiveMessages
-from imutils.video import FPS
-from imutils.video import VideoStream
 from Occupancy_Tracker.singleton_template import Singleton
 
 
@@ -37,9 +39,10 @@ class HumanDetector(metaclass=Singleton):
         self.meter_per_pixel = None
         self.args = None
         parser = argparse.ArgumentParser()
-        parser.add_argument("-i", "--peer_ip_address", type=str, help="Provide the IP address of the remote raspberry PI.")
+        parser.add_argument("-i", "--peer_ip_address", type=str,
+                            help="Provide the IP address of the remote raspberry PI.")
         parser.add_argument("-p", "--peer_port", type=int, help="Provide the server port of the remote raspberry PI.",
-                        default=SERVER_PORT)
+                            default=SERVER_PORT)
         parser.add_argument('-d', '--debug', type=bool, help='Enable debug logging.', default=False)
         self.args = parser.parse_args()
         if self.args.debug:
@@ -67,9 +70,11 @@ class HumanDetector(metaclass=Singleton):
         :return:
         """
         t1 = threading.Thread(target=HumanDetector().thread_for_face_tracker)
+        t2 = threading.Thread(target=EmailSender.send_email_with_time)
         # starting thread 1
         t1.start()
-        return t1.join()
+        t2.start()
+        # return t1.join()
 
     def get_human_centroid_dict(self):
         """
@@ -161,7 +166,7 @@ class HumanDetector(metaclass=Singleton):
         # check if the frame is None, if so, break out of the loop
         if self.frame is None:
             if self.find_humans_from_video_file_name:
-                for _ in range(TIMEOUT_FOR_TRACKER+1):
+                for _ in range(TIMEOUT_FOR_TRACKER + 1):
                     HumanTrackerHandler.compute_direction_for_dangling_object_ids(keep_dict_items=True)
                     time.sleep(1)
                 self.perform_human_detection = False
@@ -219,9 +224,7 @@ class HumanDetector(metaclass=Singleton):
 
     def thread_for_face_tracker(self):
         return_value = True
-        currhour = datetime.now().minute
-        while self.perform_human_detection and (45 < currhour > 46):
-            currhour = datetime.now().minute
+        while self.perform_human_detection:
             try:
                 self.loop_over_streams()
             except Exception as e:
@@ -229,10 +232,8 @@ class HumanDetector(metaclass=Singleton):
                     type(e).__name__ + ': ' + str(e)))
                 return_value = False
                 os.system("sudo reboot")
-        HumanDetector.clean_up()
         return return_value
 
 
 if __name__ == '__main__':
     HumanDetector().perform_job()
-

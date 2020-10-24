@@ -1,11 +1,11 @@
-from Occupancy_Tracker.constants import SEND_EMAIL, ENTER_LOG_FILE_NAME, EXIT_LOG_FILE_NAME, Direction
-import cv2
 import os
-from threading import Thread
-from pathlib import Path
-from imutils.io import TempFile
-from Occupancy_Tracker.email_sender import EmailSender
 from datetime import datetime
+from pathlib import Path
+
+import cv2
+from imutils.io import TempFile
+
+from Occupancy_Tracker.constants import SEND_EMAIL, ENTER_LOG_FILE_NAME, EXIT_LOG_FILE_NAME, Direction
 from Occupancy_Tracker.logger import Logger
 from Occupancy_Tracker.send_receive_messages import SendReceiveMessages
 
@@ -13,6 +13,8 @@ from Occupancy_Tracker.send_receive_messages import SendReceiveMessages
 class HumanValidator:
     enter_log_file = None
     exit_log_file = None
+    weekly_log_file = None
+    monthly_log_file = None
 
     @classmethod
     def close_log_file(cls):
@@ -30,6 +32,7 @@ class HumanValidator:
         # set the file pointer to end of the file
         if cls.enter_log_file.seek(0, os.SEEK_END) == 0:
             cls.enter_log_file.write("Year,Month,Day,Time,Direction\n")
+
         if not cls.exit_log_file:
             cls.exit_log_file = open(os.path.join(Path(__file__).parent, EXIT_LOG_FILE_NAME), mode="a")
         # set the file pointer to end of the file
@@ -39,7 +42,7 @@ class HumanValidator:
     @classmethod
     def validate_column_movement(cls, trackable_object, time_stamp, frame, objectID):
         # Initialize log file.
-        if not cls.enter_log_file or not cls.exit_log_file:
+        if not cls.enter_log_file or not cls.exit_log_file or not cls.weekly_log_file or not cls.monthly_log_file:
             cls.initialize_log_file()
 
         # check if the object has not been logged
@@ -80,15 +83,12 @@ class HumanValidator:
                                                  day, time, repr(trackable_object.direction))
             if trackable_object.direction == Direction.ENTER:
                 cls.enter_log_file.write(info)
+                cls.enter_log_file.flush()
                 SendReceiveMessages().increment_face_detected_locally()
             elif trackable_object.direction == Direction.EXIT:
                 cls.exit_log_file.write(info)
+                cls.exit_log_file.flush()
                 SendReceiveMessages().decrement_face_detected_locally()
 
             # set the object has logged
             trackable_object.logged = True
-
-            # create a thread to send the image via email.
-            # and start it
-            t = Thread(target=EmailSender.send_email)
-            t.start()
