@@ -8,9 +8,9 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import formatdate
 
-from Occupancy_Tracker.constants import ENTER_LOG_FILE_NAME, WEEKLY_LOG_FILE_NAME, MONTHLY_LOG_FILE_NAME, HOUR, MINUTE, \
+from constants import ENTER_LOG_FILE_NAME, WEEKLY_LOG_FILE_NAME, MONTHLY_LOG_FILE_NAME, HOUR, MINUTE, \
     DAY, DATE, CLEAR_FILES
-from Occupancy_Tracker.logger import Logger
+from logger import Logger
 
 
 class EmailSender:

@@ -66,12 +66,16 @@ MINUTE = 0
 DAY = "Saturday"
 DATE = 24
 
-USE_PI_CAMERA = True
+USE_PI_CAMERA = False
 
 CLEAR_FILES = True
 
 OCCUPATION_LOG = "/home/pi/Occupation.log"
 
+
 class Direction(Enum):
     ENTER = 1
     EXIT = 2
+
+
+USE_RASPBERRY_PI = True

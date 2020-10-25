@@ -5,9 +5,9 @@ from pathlib import Path
 import cv2
 from imutils.io import TempFile
 
-from Occupancy_Tracker.constants import SEND_EMAIL, ENTER_LOG_FILE_NAME, EXIT_LOG_FILE_NAME, Direction
-from Occupancy_Tracker.logger import Logger
-from Occupancy_Tracker.send_receive_messages import SendReceiveMessages
+from constants import SEND_EMAIL, ENTER_LOG_FILE_NAME, EXIT_LOG_FILE_NAME, Direction
+from logger import Logger
+from send_receive_messages import SendReceiveMessages
 
 
 class HumanValidator:

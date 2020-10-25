@@ -7,21 +7,22 @@ import threading
 import time
 from datetime import datetime
 
+
 import cv2
 import imutils
 from imutils.video import FPS
 from imutils.video import VideoStream
 
-from Occupancy_Tracker.centroid_object_creator import CentroidObjectCreator
+from centroid_object_creator import CentroidObjectCreator
 # import the necessary packages
-from Occupancy_Tracker.constants import PROTO_TEXT_FILE, MODEL_NAME, FRAME_WIDTH_IN_PIXELS, VIDEO_DEV_ID, \
-    SERVER_PORT, TIMEOUT_FOR_TRACKER, USE_PI_CAMERA, OPEN_DISPLAY, ERROR_MESSAGE
-from Occupancy_Tracker.email_sender import EmailSender
-from Occupancy_Tracker.human_tracker_handler import HumanTrackerHandler
-from Occupancy_Tracker.human_validator import HumanValidator
-from Occupancy_Tracker.logger import Logger
-from Occupancy_Tracker.send_receive_messages import SendReceiveMessages
-from Occupancy_Tracker.singleton_template import Singleton
+from constants import PROTO_TEXT_FILE, MODEL_NAME, FRAME_WIDTH_IN_PIXELS, VIDEO_DEV_ID, \
+    SERVER_PORT, TIMEOUT_FOR_TRACKER, USE_PI_CAMERA, OPEN_DISPLAY, USE_RASPBERRY_PI, MAX_OCCUPANCY
+from email_sender import EmailSender
+from human_tracker_handler import HumanTrackerHandler
+from human_validator import HumanValidator
+from logger import Logger
+from send_receive_messages import SendReceiveMessages
+from singleton_template import Singleton
 
 
 class HumanDetector(metaclass=Singleton):
@@ -71,10 +72,19 @@ class HumanDetector(metaclass=Singleton):
         """
         t1 = threading.Thread(target=HumanDetector().thread_for_face_tracker)
         t2 = threading.Thread(target=EmailSender.send_email_with_time)
+        t3 = threading.Thread(target=HumanDetector().get_and_print_total_face_count)
+
         # starting thread 1
         t1.start()
         t2.start()
+        t3.start()
         # return t1.join()
+
+    @classmethod
+    def perform_job_mac(cls):
+        HumanDetector().thread_for_face_tracker()
+        t1 = threading.Thread(target=HumanDetector().get_and_print_total_face_count)
+        t1.start()
 
     def get_human_centroid_dict(self):
         """
@@ -200,6 +210,18 @@ class HumanDetector(metaclass=Singleton):
         # Update the FPS counter
         self.fps.update()
 
+    def get_and_print_total_face_count(self):
+        while self.perform_human_detection:
+            time.sleep(5)
+            Logger.logger().info("[INFO D 1]: {}".format(SendReceiveMessages().get_total_face_detected_count()))
+            Logger.logger().info("[INFO L 2]: {}".format(SendReceiveMessages().get_face_detected_count_locally()))
+            Logger.logger().info("[INFO P 3]: {}".format(SendReceiveMessages().get_face_detected_by_peer()))
+            Logger.logger().info(
+                "method_for_comparing_local_face_detected_and_global_face_detected: Compute total faces "
+                "detected by both cameras: {}".format(SendReceiveMessages().get_total_face_detected_count()))
+            if SendReceiveMessages().get_total_face_detected_count() >= MAX_OCCUPANCY:
+                Logger.logger().info("Please wait because the occupancy is greater than {}".format(MAX_OCCUPANCY))
+
     def clean_up(self):
         self.perform_human_detection = False
         SendReceiveMessages().cleanup()
@@ -235,4 +257,5 @@ class HumanDetector(metaclass=Singleton):
 
 
 if __name__ == '__main__':
-    HumanDetector().perform_job()
+    if USE_RASPBERRY_PI:
+        HumanDetector().perform_job()

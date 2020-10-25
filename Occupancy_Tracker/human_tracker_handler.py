@@ -1,10 +1,10 @@
 from datetime import datetime
 
 import cv2
-from Occupancy_Tracker.constants import Direction, COLUMN, TIMEOUT_FOR_TRACKER
-from Occupancy_Tracker.human_tracker import HumanTracker
-from Occupancy_Tracker.human_validator import HumanValidator
-from Occupancy_Tracker.logger import Logger
+from constants import Direction, COLUMN, TIMEOUT_FOR_TRACKER
+from human_tracker import HumanTracker
+from human_validator import HumanValidator
+from logger import Logger
 
 
 class HumanTrackerHandler:

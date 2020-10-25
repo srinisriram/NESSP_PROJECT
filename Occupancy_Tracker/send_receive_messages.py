@@ -3,10 +3,10 @@
 import socket
 import threading
 import time
-from Occupancy_Tracker.constants import MAX_OCCUPANCY, SERVER_PORT, MAX_NUMBER_OF_RCV_BYTES
-from Occupancy_Tracker.logger import Logger
-from Occupancy_Tracker.play_audio import PlayAudio
-from Occupancy_Tracker.singleton_template import Singleton
+from constants import MAX_OCCUPANCY, SERVER_PORT, MAX_NUMBER_OF_RCV_BYTES
+from logger import Logger
+from play_audio import PlayAudio
+from singleton_template import Singleton
 
 
 class SendReceiveMessages(metaclass=Singleton):
@@ -55,6 +55,7 @@ class SendReceiveMessages(metaclass=Singleton):
     def __init__(self):
         self.__total_faces_detected_locally = 0
         self.__total_faces_detected_by_peer = 0
+        self.total_faces_detected = 0
         self.thread_for_receiving_face_detected_by_peer = None
         self.thread_for_transmitting_face_detected_locally = None
         self.thread__for_comparing_local_face_detected_and_global_face_detected = None
@@ -94,7 +95,7 @@ class SendReceiveMessages(metaclass=Singleton):
                             server_address, self.__total_faces_detected_by_peer))
                             else:
                                 Logger.logger().debug("server method_for_receiving_face_detected_by_peer: data is Null")
-    
+
             except Exception as e:
                 Logger.logger().error(type(e).__name__ + ': ' + str(e))
                 time.sleep(1)
@@ -122,6 +123,12 @@ class SendReceiveMessages(metaclass=Singleton):
 
     def get_face_detected_count_locally(self):
         return self.__total_faces_detected_locally
+
+    def get_total_face_detected_count(self):
+        return self.total_faces_detected
+
+    def get_total_face_detected_by_peer(self):
+        return self.__total_faces_detected_by_peer
 
     def method_for_transmitting_face_detected_locally(self, peer_ip_address, peer_port=SERVER_PORT):
         """
@@ -180,14 +187,7 @@ class SendReceiveMessages(metaclass=Singleton):
         """
         Logger.logger().info("Running thread method_for_comparing_local_face_detected_and_global_face_detected...")
         while SendReceiveMessages.run_program:
-            total_faces_detected = self.__total_faces_detected_locally + self.__total_faces_detected_by_peer
-            Logger.logger().info("[INFO D 1]: {}".format(total_faces_detected))
-            Logger.logger().info("[INFO L 2]: {}".format(self.__total_faces_detected_locally))
-            Logger.logger().info("[INFO P 3]: {}".format(self.__total_faces_detected_by_peer))
-            Logger.logger().info(
-                "method_for_comparing_local_face_detected_and_global_face_detected: Compute total faces "
-                "detected by both cameras: {}".format(total_faces_detected))
-            if total_faces_detected >= MAX_OCCUPANCY:
-                Logger.logger().info("Please wait because the occupancy is greater than {}".format(MAX_OCCUPANCY))
+            self.total_faces_detected = self.__total_faces_detected_locally + self.__total_faces_detected_by_peer
+            if self.total_faces_detected >= MAX_OCCUPANCY:
                 PlayAudio.play_audio_file()
             time.sleep(5)
