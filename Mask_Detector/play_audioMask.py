@@ -2,7 +2,7 @@
 import os
 import subprocess
 
-from constants import sound_file
+from vars import sound_file
 
 
 class PlayAudio:
