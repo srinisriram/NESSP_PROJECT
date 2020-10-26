@@ -66,7 +66,7 @@ MINUTE = 0
 DAY = "Saturday"
 DATE = 24
 
-USE_PI_CAMERA = False
+USE_PI_CAMERA = True
 
 CLEAR_FILES = True
 
