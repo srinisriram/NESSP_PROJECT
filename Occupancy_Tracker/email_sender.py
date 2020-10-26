@@ -11,6 +11,7 @@ from email.utils import formatdate
 from constants import ENTER_LOG_FILE_NAME, WEEKLY_LOG_FILE_NAME, MONTHLY_LOG_FILE_NAME, HOUR, MINUTE, \
     DAY, DATE, CLEAR_FILES
 from logger import Logger
+from Occupancy_Tracker.send_receive_messages import SendReceiveMessages
 
 
 class EmailSender:
@@ -148,6 +149,8 @@ class EmailSender:
                             Logger.logger().info("[INFO] Clearing file(s)...")
                             EmailSender.clear_all_files()
                         emailSent = True
+                        Logger.logger().info("Resetting the count...")
+                        EmailSender.reset_count_variables()
 
     @classmethod
     def clear_all_files(self):
@@ -169,3 +172,13 @@ class EmailSender:
             file2 = open(MONTHLY_LOG_FILE_NAME, "r+")
             file2.truncate(0)
             file2.close()
+
+    @classmethod
+    def reset_count_variables(cls):
+        """
+        This methods resets the count variables.
+        :return:
+        """
+        SendReceiveMessages().__total_faces_detected_locally = 0
+        SendReceiveMessages().__total_faces_detected_by_peer = 0
+        SendReceiveMessages().total_faces_detected = 0
