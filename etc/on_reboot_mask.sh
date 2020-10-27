@@ -10,7 +10,7 @@ workon openvino
 source ~/openvino/bin/setupvars.sh
 export PYTHONPATH=$PYTHONPATH:/home/pi/NESSP_PROJECT
 echo "Testing Audio..." &>>Mask.log
-aplay test_audio.wav
+aplay /home/pi/test_audio.wav
 # shellcheck disable=SC2164
 cd ~/NESSP_PROJECT/Mask_Detector
 # shellcheck disable=SC2129
