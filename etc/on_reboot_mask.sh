@@ -7,7 +7,7 @@ echo "Initializing Environment..." &>/home/pi/Mask.log
 source $(which virtualenvwrapper.sh)
 workon openvino
 # shellcheck disable=SC1090
-source ~/openvino/bin/setupvars.sh
+source ~/openvino/openvino/bin/setupvars.sh
 export PYTHONPATH=$PYTHONPATH:/home/pi/NESSP_PROJECT
 echo "Testing Audio..." &>>Mask.log
 aplay /home/pi/test_audio.wav
