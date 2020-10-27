@@ -41,7 +41,7 @@ CLASSES = ["background", "aeroplane", "bicycle", "bird", "boat",
            "sofa", "train", "tvmonitor"]
 MAX_TRACKER_LIST_SIZE = 10
 
-OPEN_DISPLAY = True
+OPEN_DISPLAY = False
 
 VIDEO_DEV_ID = 0
 

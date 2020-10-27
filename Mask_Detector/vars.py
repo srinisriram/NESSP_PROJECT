@@ -12,3 +12,4 @@ min_mask_confidence = 0.9
 
 sound_file = "speech1.wav"
 
+OPEN_DISPLAY = False

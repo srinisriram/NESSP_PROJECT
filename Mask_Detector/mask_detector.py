@@ -1,12 +1,13 @@
 # Import necessary packages
 import threading
 import time
+from datetime import datetime
 
 import cv2
 from detect import detect
 from play_audioMask import PlayAudio
 from tensorflow.keras.models import load_model
-from vars import prototxt_path, face_model_path, mask_model_path, min_mask_confidence
+from vars import prototxt_path, face_model_path, mask_model_path, min_mask_confidence, OPEN_DISPLAY
 
 # Load all the models, and start the camera stream
 faceModel = cv2.dnn.readNet(prototxt_path, face_model_path)
@@ -77,18 +78,21 @@ def thread_for_mask_detection():
                     playAudio = True
                     color = (0, 0, 255)
 
-            # Place label and Bounding Box
-            cv2.putText(frame, label, (startX, startY - 10),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.45, color, 2)
-            cv2.rectangle(frame, (startX, startY), (endX, endY), color, 2)
+            print("[INFO] {} | {}".format(label, datetime.now()))
+            if OPEN_DISPLAY:
+                # Place label and Bounding Box
+                cv2.putText(frame, label, (startX, startY - 10),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.45, color, 2)
+                cv2.rectangle(frame, (startX, startY), (endX, endY), color, 2)
 
         # show the frame
-        cv2.imshow("Frame", frame)
-        key = cv2.waitKey(1) & 0xFF
+        if OPEN_DISPLAY:
+            cv2.imshow("Frame", frame)
+            key = cv2.waitKey(1) & 0xFF
 
-        # break from loop if key pressed is q
-        if key == ord("q"):
-            break
+            # break from loop if key pressed is q
+            if key == ord("q"):
+                break
 
 
 if __name__ == "__main__":

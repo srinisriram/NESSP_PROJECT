@@ -101,56 +101,55 @@ class EmailSender:
         :param minute:
         :return:
         """
-        emailSent = False
         while True:
+            email_sent = False
             now = datetime.datetime.now().time()
             Logger.logger().debug("Current Time: ", now)
             hr = now.hour
             while hr == hour:
                 now = datetime.datetime.now().time()
                 min = now.minute
-                if min == minute:
-                    if emailSent == False:
-                        lines = []
-                        day = datetime.datetime.now().strftime("%A")
-                        dailyfile = open(ENTER_LOG_FILE_NAME, "r")
-                        for line in dailyfile:
+                if min == minute and not email_sent:
+                    lines = []
+                    day = datetime.datetime.now().strftime("%A")
+                    dailyfile = open(ENTER_LOG_FILE_NAME, "r")
+                    for line in dailyfile:
+                        lines.append(line)
+                    dailyfile.close()
+                    weeklyfile = open(WEEKLY_LOG_FILE_NAME, "a")
+                    try:
+                        lines.pop(0)
+                    except Exception as e:
+                        Logger.logger().info(type(e).__name__ + ': ' + str(e))
+                        pass
+                    for line in lines:
+                        weeklyfile.write(line)
+                    weeklyfile.close()
+                    lines.clear()
+                    if day == DAY:
+                        weeklyfile = open(WEEKLY_LOG_FILE_NAME, "r")
+                        for line in weeklyfile:
                             lines.append(line)
-                        dailyfile.close()
-                        weeklyfile = open(WEEKLY_LOG_FILE_NAME, "a")
+                        weeklyfile.close()
+                        monthlyfile = open(MONTHLY_LOG_FILE_NAME, "a")
                         try:
                             lines.pop(0)
                         except Exception as e:
                             Logger.logger().info(type(e).__name__ + ': ' + str(e))
                             pass
                         for line in lines:
-                            weeklyfile.write(line)
-                        weeklyfile.close()
+                            monthlyfile.write(line)
                         lines.clear()
-                        if day == DAY:
-                            weeklyfile = open(WEEKLY_LOG_FILE_NAME, "r")
-                            for line in weeklyfile:
-                                lines.append(line)
-                            weeklyfile.close()
-                            monthlyfile = open(MONTHLY_LOG_FILE_NAME, "a")
-                            try:
-                                lines.pop(0)
-                            except Exception as e:
-                                Logger.logger().info(type(e).__name__ + ': ' + str(e))
-                                pass
-                            for line in lines:
-                                monthlyfile.write(line)
-                            lines.clear()
-                            monthlyfile.close()
-                        Logger.logger().info("[INFO] Sending Email...")
-                        EmailSender.email_send()
-                        Logger.logger().info("[INFO] Email Sent...")
-                        if CLEAR_FILES:
-                            Logger.logger().info("[INFO] Clearing file(s)...")
-                            EmailSender.clear_all_files()
-                        emailSent = True
-                        Logger.logger().info("Resetting the count...")
-                        EmailSender.reset_count_variables()
+                        monthlyfile.close()
+                    Logger.logger().info("[INFO] Sending Email...")
+                    EmailSender.email_send()
+                    Logger.logger().info("[INFO] Email Sent...")
+                    if CLEAR_FILES:
+                        Logger.logger().info("[INFO] Clearing file(s)...")
+                        EmailSender.clear_all_files()
+                    email_sent = True
+                    Logger.logger().info("Resetting the count...")
+                    SendReceiveMessages().reset_count_variables()
 
     @classmethod
     def clear_all_files(self):
@@ -173,12 +172,3 @@ class EmailSender:
             file2.truncate(0)
             file2.close()
 
-    @classmethod
-    def reset_count_variables(cls):
-        """
-        This methods resets the count variables.
-        :return:
-        """
-        SendReceiveMessages().__total_faces_detected_locally = 0
-        SendReceiveMessages().__total_faces_detected_by_peer = 0
-        SendReceiveMessages().total_faces_detected = 0

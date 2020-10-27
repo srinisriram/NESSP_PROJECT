@@ -130,6 +130,11 @@ class SendReceiveMessages(metaclass=Singleton):
     def get_total_face_detected_by_peer(self):
         return self.__total_faces_detected_by_peer
 
+    def reset_count_variables(self):
+        self.__total_faces_detected_locally = 0
+        self.__total_faces_detected_by_peer = 0
+        self.total_faces_detected = 0
+
     def method_for_transmitting_face_detected_locally(self, peer_ip_address, peer_port=SERVER_PORT):
         """
         This method is used for transmitting the __total_faces_detected_locally count to peer.
