@@ -4,12 +4,12 @@ echo "Initializing Environment..." &>/home/pi/Mask.log
 # shellcheck disable=SC1090
 # shellcheck disable=SC2046
 # shellcheck disable=SC2230
-source $(which virtualenvwrapper.sh)
-workon openvino
+source $(which virtualenvwrapper.sh) &>>/home/pi/Mask.log
+workon openvino &>/home/pi/Mask.log
 # shellcheck disable=SC1090
-source ~/openvino/openvino/bin/setupvars.sh
-export PYTHONPATH=$PYTHONPATH:/home/pi/NESSP_PROJECT
-echo "Testing Audio..." &>>Mask.log
+source ~/openvino/openvino/bin/setupvars.sh &>>/home/pi/Mask.log
+export PYTHONPATH=$PYTHONPATH:/home/pi/NESSP_PROJECT &>>/home/pi/Mask.log
+echo "Testing Audio..." &>>/home/pi/Mask.log
 aplay /home/pi/test_audio.wav
 # shellcheck disable=SC2164
 cd ~/NESSP_PROJECT/Mask_Detector
