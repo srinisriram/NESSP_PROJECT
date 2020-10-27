@@ -5,7 +5,7 @@ echo "Initializing Environment..." &>/home/pi/Mask.log
 # shellcheck disable=SC2046
 # shellcheck disable=SC2230
 source $(which virtualenvwrapper.sh) &>>/home/pi/Mask.log
-workon openvino &>/home/pi/Mask.log
+workon openvino &>>/home/pi/Mask.log
 # shellcheck disable=SC1090
 source ~/openvino/openvino/bin/setupvars.sh &>>/home/pi/Mask.log
 export PYTHONPATH=$PYTHONPATH:/home/pi/NESSP_PROJECT &>>/home/pi/Mask.log
