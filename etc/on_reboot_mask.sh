@@ -3,6 +3,7 @@
 echo "Initializing Environment..." &>/home/pi/Mask.log
 # shellcheck disable=SC1090
 # shellcheck disable=SC2046
+# shellcheck disable=SC2230
 source $(which virtualenvwrapper.sh)
 workon openvino
 # shellcheck disable=SC1090
