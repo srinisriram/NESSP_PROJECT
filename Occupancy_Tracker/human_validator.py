@@ -81,6 +81,7 @@ class HumanValidator:
                 # log the event in the log file
                 info = "{},{},{},{},{}\n".format(year, month,
                                                  day, time, repr(trackable_object.direction))
+            cls.initialize_log_file()
             if trackable_object.direction == Direction.ENTER:
                 cls.enter_log_file.write(info)
                 cls.enter_log_file.flush()
