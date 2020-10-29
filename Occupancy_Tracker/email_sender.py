@@ -52,7 +52,7 @@ class EmailSender:
         msg['From'] = 'maskdetector101@gmail.com'
         msg['To'] = "adityaanand.muz@gmail.com, srinivassriram06@gmail.com, raja.muz@gmail.com, abhisar.muz@gmail.com"
         msg['Date'] = formatdate(localtime=True)
-        msg['Subject'] = 'Here is the Occupancy List for Today'
+        msg['Subject'] = 'Here is the Occupancy List for {}'.format(datetime.date.today())
 
         total_count_of_people_entered = cls.get_count_file(enter_csv_sheet)
         total_count_of_people_exited = cls.get_count_file(exit_csv_sheet)
@@ -71,11 +71,11 @@ class EmailSender:
             part.add_header('Content-Disposition', 'attachment', filename=file_name)
             msg.attach(part)
 
-        if len(attachmentsList) == 1:
+        if len(attachmentsList) == 2:
             body = body + 'Please find the attached daily occupancy tracker sheet for your reference.\n'
-        elif len(attachmentsList) == 2:
-            body = body + 'Please find the attached daily and weekly occupancy tracker sheet for your reference.\n'
         elif len(attachmentsList) == 3:
+            body = body + 'Please find the attached daily and weekly occupancy tracker sheet for your reference.\n'
+        elif len(attachmentsList) == 4:
             body = body + 'Please find the attached daily, weekly and monthly occupancy tracker sheet for your reference.\n'
 
         if total_count_of_people_entered >= total_count_of_people_exited:
