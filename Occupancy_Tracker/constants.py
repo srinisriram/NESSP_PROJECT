@@ -55,8 +55,10 @@ TEST_VIDEO_FILE_PATH_1 = 'videos/example_01.mp4'
 TEST_VIDEO_FILE_PATH_2 = 'videos/example_02.mp4'
 
 # Log file name
-ENTER_LOG_FILE_NAME = "exit_file.csv"
-EXIT_LOG_FILE_NAME = "enter_file.csv"
+ENTER_LOG_FILE_NAME = "enter_file.csv"
+PEER_ENTER_LOG_FILE_NAME = "peer_enter_file.csv"
+EXIT_LOG_FILE_NAME = "exit_file.csv"
+PEER_EXIT_LOG_FILE_NAME = "peer_exit_file.csv"
 WEEKLY_LOG_FILE_NAME = "weekly_enter_file.csv"
 MONTHLY_LOG_FILE_NAME = "monthly_enter_file.csv"
 
