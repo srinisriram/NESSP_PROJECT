@@ -71,12 +71,10 @@ class HumanDetector(metaclass=Singleton):
         :return:
         """
         t1 = threading.Thread(target=HumanDetector().thread_for_face_tracker)
-        t2 = threading.Thread(target=EmailSender.send_email_with_time)
         t3 = threading.Thread(target=HumanDetector().get_and_print_total_face_count)
 
         # starting thread 1
         t1.start()
-        t2.start()
         t3.start()
         # return t1.join()
 
